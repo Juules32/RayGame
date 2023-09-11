@@ -1,54 +1,110 @@
-/*******************************************************************************************
- *
- *   raylib [core] example - Keyboard input
- *
- *   Example originally created with raylib 1.0, last time updated with raylib 1.0
- *
- *   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
- *   BSD-like license that allows static linking with closed source software
- *
- *   Copyright (c) 2014-2023 Ramon Santamaria (@raysan5)
- *
- ********************************************************************************************/
 
 #include "raylib.h"
+#include <iostream>
+#include "shorthands.hpp"
 
-//------------------------------------------------------------------------------------
-// Program main entry point
-//------------------------------------------------------------------------------------
+
+struct Player {
+    Vector2 pos = {0,0};
+    Vector2 v = {0,0};
+};
+
+
 int main(void)
 {
 
-    // Initialization
-    //--------------------------------------------------------------------------------------
-    const int screenWidth = 800;
-    const int screenHeight = 450;
+    // Setup
+    int windowWidth = 800;
+    int windowHeight = 450;
 
-    InitWindow(screenWidth, screenHeight, "raylib [core] example - keyboard input");
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(windowWidth, windowHeight, "raylib [core] example - keyboard input");
+    
+    Texture2D test = LoadTexture("resources/test.png");
 
-    Vector2 ballPosition = {screenWidth / 2, screenHeight / 2};
-
-    SetTargetFPS(60); // Set our game to run at 60 frames-per-second
-    //--------------------------------------------------------------------------------------
-
-    // Main game loop
-    while (!WindowShouldClose()) // Detect window close button or ESC key
+    Camera2D playerCamera {(Vector2){0,0},(Vector2){0,0}, 0, 1};
+    Player player;
+    Vector2 windowPosition = GetWindowPosition();
+    
+    int maxMonitorWidth, maxMonitorHeight;
+    
+    for (int i = 0; i < GetMonitorCount(); i++)
     {
-        BeginDrawing();
-
-        ClearBackground(RAYWHITE);
-
-        DrawText("move the ball with arrow keys", 10, 10, 20, DARKGRAY);
-        DrawCircleV(ballPosition, 50, MAROON);
-
-        EndDrawing();
-        //----------------------------------------------------------------------------------
+        if (GetMonitorWidth(i) > maxMonitorWidth) maxMonitorWidth = GetMonitorWidth(i);
+        if (GetMonitorHeight(i) > maxMonitorHeight) maxMonitorHeight = GetMonitorHeight(i);
     }
 
-    // De-Initialization
-    //--------------------------------------------------------------------------------------
-    CloseWindow(); // Close window and OpenGL context
-    //--------------------------------------------------------------------------------------
+    SetTargetFPS(60);
 
+    // Main game loop
+    while (!WindowShouldClose())
+    {
+        // Event handling
+        if(IsKeyPressed(KEY_F)) {
+            if(!IsWindowFullscreen()) {
+                MaximizeWindow();
+                ToggleFullscreen();
+
+            }
+            else {
+                ToggleFullscreen();
+                SetWindowSize(windowWidth, windowHeight);
+                SetWindowPosition(windowPosition.x, windowPosition.y);
+            }
+        }
+        if(IsKeyDown(KEY_RIGHT)) {
+            player.v.x = 5;
+        }
+        if(IsKeyDown(KEY_LEFT)) {
+            player.v.x = -5;
+        }
+        if(IsKeyDown(KEY_UP)) {
+            player.v.y = -5;
+        }
+        if(IsKeyDown(KEY_DOWN)) {
+            player.v.y = 5;
+        }
+
+        if(IsWindowResized()) {
+            std::cout << "wa" << std::endl;
+            windowWidth = GetScreenWidth();
+            windowHeight = GetScreenHeight();
+            if(windowWidth > maxMonitorWidth) windowWidth = maxMonitorWidth;
+            if(windowHeight > maxMonitorHeight) windowHeight = maxMonitorHeight;
+            SetWindowSize(windowWidth, windowHeight);
+        }
+
+        // Physics
+        player.pos.x += player.v.x;
+        player.pos.y += player.v.y;
+        player.v.x = player.v.x * 0.8;
+        player.v.y = player.v.y * 0.8;
+
+        // Update camera position to player position
+        playerCamera.offset.x = windowWidth / 2;
+        playerCamera.offset.y = windowHeight / 2;
+        playerCamera.target = player.pos;
+        playerCamera.zoom += 0.01;
+        playerCamera.rotation += 1;
+        
+        // Rendering
+        BeginDrawing();
+        ClearBackground(RAYWHITE);
+        BeginMode2D(playerCamera);
+        DrawTexture(test,0,0, WHITE);
+        DrawRectangle(player.pos.x - PLAYERWIDTH,player.pos.y - PLAYERHEIGHT,PLAYERWIDTH*2,PLAYERHEIGHT*2,BLUE);
+        EndMode2D();
+
+        DrawRectangle(0, 0, maxMonitorWidth, maxMonitorHeight, NIGHT);
+
+
+        // Debugging information
+        DrawFPS(10,10);
+
+        EndDrawing();
+    }
+
+    UnloadTexture(test);
+    CloseWindow();
     return 0;
 }
