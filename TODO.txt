@@ -1,0 +1,13 @@
+KNOWN BUGS:
+    - Updating camera source repeatedly screws up the zoom levels
+        to fix: make zoom a field in FocusableEntity that the camera uses
+
+UNEXPLAINED MYSTERIES:
+    - What determines font size in relation to camera zoom
+
+TODO'S:
+    - rendering struktur
+    - shake screen (ændr camera.offset)
+    - collission
+    - auto nudge hvis man lige knap kan slide langs en væg
+    - fireflies at night effect

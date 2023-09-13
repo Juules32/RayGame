@@ -1,27 +1,38 @@
 
 #include "raylib.h"
 #include <iostream>
-#include "shorthands.hpp"
+#include "types.hpp"
 #include <memory>
+#include <vector>
+#include <cmath>
 
-const int SCALEFACTOR = 4;
-const float MOVE_SPEED = 1.0;
-const float FRICTION = 0.8;
+using std::cout;
+using std::cin;
+using std::endl;
 
-struct Entity
-{
-    Vector2 pos = {0, 0};
-};
+#define NIGHT (Color){0,20,40,150}
+#define DAY (Color){155,155,0,30}
 
-struct FocusableEntity : Entity
-{
-    Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
-};
 
-struct Player : FocusableEntity
-{
-    Vector2 v = {0, 0};
-};
+bool settingsActive = false;
+
+bool worldActive = true;
+
+std::vector<bool*> menus;
+
+
+
+
+void checkIfWorldActive() {
+    for (bool* menu: menus)
+    {
+        if(menu != nullptr && *menu) {
+            worldActive = false;
+            return;
+        }
+    }
+    worldActive = true;
+}
 
 Player player;
 
@@ -32,27 +43,32 @@ FocusableEntity testEntity;
 Vector2 GetMouseGamePosition()
 {
     Vector2 mouseCoords = GetMousePosition();
-    mouseCoords.x += activeEntity->camera.target.x * SCALEFACTOR;
-    mouseCoords.y += activeEntity->camera.target.y * SCALEFACTOR;
+    mouseCoords.x += activeEntity->camera.target.x * activeEntity->camera.zoom;
+    mouseCoords.y += activeEntity->camera.target.y * activeEntity->camera.zoom;
     mouseCoords.x -= activeEntity->camera.offset.x;
     mouseCoords.y -= activeEntity->camera.offset.y;
-    mouseCoords.x /= SCALEFACTOR;
-    mouseCoords.y /= SCALEFACTOR;
+    mouseCoords.x /= activeEntity->camera.zoom;
+    mouseCoords.y /= activeEntity->camera.zoom;
 
     return mouseCoords;
 }
 
+Camera2D stdCamera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
+
+TextButton testButton(10,10,50,50,"Hello!");
+
 int main(void)
 {
+    menus.push_back(&settingsActive);
     // Setup
-    int windowWidth = 1400;
-    int windowHeight = 800;
+    
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(windowWidth, windowHeight, "raylib [core] example - keyboard input");
 
     Texture2D test = LoadTexture("resources/test.png");
     Texture2D Xyno = LoadTexture("resources/Xyno.png");
+    Texture2D butta = LoadTexture("resources/butta.png");
 
     player.camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
     Vector2 windowPosition = GetWindowPosition();
@@ -72,8 +88,7 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())
     {
-        std::cout << player.v.x << std::endl;
-
+        checkIfWorldActive();
         // Event handling
         if (IsKeyPressed(KEY_F))
         {
@@ -90,49 +105,70 @@ int main(void)
             }
         }
 
+        if(worldActive) {
+            // When left right up is pressed, controls don't work properly!
+            if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
+            {
+                player.v.x += 1;
+            }
+            else if (!IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_LEFT))
+            {
+                player.v.x -= 1;
+            }
+            else
+            {
+                player.v.x *= 0.8;
+            }
+            if (IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN))
+            {
+                player.v.y -= MOVE_SPEED;
+            }
+            else if (!IsKeyDown(KEY_UP) && IsKeyDown(KEY_DOWN))
+            {
+                player.v.y += MOVE_SPEED;
+            }
+            else
+            {
+                player.v.y *= FRICTION;
+            }
+        }
+        else {
+            player.v.x = 0;
+            player.v.y = 0;
+        }
         
-        // When left right up is pressed, controls don't work properly!
-        if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
-        {
-            player.v.x += 1;
-        }
-        else if (!IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_LEFT))
-        {
-            player.v.x -= 1;
-        }
-        else
-        {
-            player.v.x *= 0.8;
-        }
-        if (IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN))
-        {
-            player.v.y -= MOVE_SPEED;
-        }
-        else if (!IsKeyDown(KEY_UP) && IsKeyDown(KEY_DOWN))
-        {
-            player.v.y += MOVE_SPEED;
-        }
-        else
-        {
-            player.v.y *= FRICTION;
-        }
 
-        if (IsKeyDown(KEY_Q))
+        if (IsKeyPressed(KEY_Q))
         {
             FocusableEntity old_entity = *activeEntity;
             activeEntity = &testEntity;
             activeEntity->camera.target = old_entity.camera.target;
+            targetZoom = activeEntity->camera.zoom;
+            activeEntity->camera.zoom = old_entity.camera.zoom;
         }
-        if (IsKeyDown(KEY_W))
+        if (IsKeyPressed(KEY_W))
         {
             FocusableEntity old_entity = *activeEntity;
             activeEntity = &player;
             activeEntity->camera.target = old_entity.camera.target;
+            targetZoom = activeEntity->camera.zoom;
+            activeEntity->camera.zoom = old_entity.camera.zoom;
+        }
+        if (IsKeyPressed(KEY_E))
+        {
+            testButton.outputText();
+        }
+        if (IsKeyPressed(KEY_R))
+        {
+            activeEntity->startShake();
+        }
+        if (IsKeyPressed(KEY_ESCAPE))
+        {
+            settingsActive = !settingsActive;
         }
 
         if (IsWindowResized())
         {
-            std::cout << "wa" << std::endl;
             windowWidth = GetScreenWidth();
             windowHeight = GetScreenHeight();
             if (windowWidth > maxMonitorWidth)
@@ -160,24 +196,31 @@ int main(void)
             player.v.y = 0;
 
         // Update camera position to player position
-        activeEntity->camera.offset.x = windowWidth / 2;
-        activeEntity->camera.offset.y = windowHeight / 2;
-        activeEntity->camera.target.x -= (activeEntity->camera.target.x - (activeEntity->pos.x + PLAYERWIDTH / 2)) * 0.15;
-        activeEntity->camera.target.y -= (activeEntity->camera.target.y - (activeEntity->pos.y + PLAYERHEIGHT / 2)) * 0.15;
-
+        activeEntity->updateCamera();
+        
         // Rendering
         BeginDrawing();
         ClearBackground(RAYWHITE);
         BeginMode2D(activeEntity->camera);
         DrawTexture(test, 0, 0, WHITE);
         DrawTexture(Xyno, 50, 150, BLUE);
+        DrawTexture(butta, -50, -150, BLUE);
         DrawRectangle(player.pos.x, player.pos.y, 50, 50, BLUE);
-        DrawRectangle(50, -30, PLAYERWIDTH, PLAYERHEIGHT, YELLOW);
+        DrawRectangle(50, 200, PLAYERWIDTH, PLAYERHEIGHT, YELLOW);
 
         std::string text_string = std::to_string(GetMouseGamePosition().x) + " " + std::to_string(GetMouseGamePosition().y);
-        DrawText(text_string.c_str(), GetMouseGamePosition().x, GetMouseGamePosition().y, 5 / SCALEFACTOR, RED);
+        DrawText(text_string.c_str(), GetMouseGamePosition().x, GetMouseGamePosition().y, 10, RED);
 
         EndMode2D();
+
+        if(settingsActive) {
+            BeginMode2D(stdCamera);
+            DrawText("hej", 60, 20, 10, RED);
+            DrawRectangle(windowWidth / 2 / SCALEFACTOR, windowHeight / 2 / SCALEFACTOR, PLAYERWIDTH, PLAYERHEIGHT, ORANGE);
+            testButton.draw();
+            EndMode2D();
+        }
+        
 
         text_string = std::to_string(player.v.x) + " " + std::to_string(player.v.y);
 
