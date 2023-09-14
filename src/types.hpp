@@ -151,7 +151,7 @@ struct Dialogue : InteractionElement
         DrawText(text.c_str(), 150, 150, 10, PURPLE);
         EndMode2D();
 
-        if (IsKeyPressed(KEY_ENTER))
+        if (IsKeyPressed(KEY_ENTER) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
         {
             return 1;
         }

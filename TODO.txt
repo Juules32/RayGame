@@ -2,6 +2,7 @@ UNEXPLAINED MYSTERIES:
     - What determines font size in relation to camera zoom
 
 TODO'S:
+    - lav dialogue text gruppering og scrolling og fast forwarding med controls
     - rendering struktur
     - shake screen (ændr camera.offset)
     - collission
