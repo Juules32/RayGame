@@ -1,7 +1,3 @@
-KNOWN BUGS:
-    - Updating camera source repeatedly screws up the zoom levels
-        to fix: make zoom a field in FocusableEntity that the camera uses
-
 UNEXPLAINED MYSTERIES:
     - What determines font size in relation to camera zoom
 
@@ -11,3 +7,6 @@ TODO'S:
     - collission
     - auto nudge hvis man lige knap kan slide langs en væg
     - fireflies at night effect
+    - lav interactions som en tree-like struktur
+    - find out way to show last message before SelectOption
+    - Running animation implementation

@@ -6,9 +6,7 @@
 #include <vector>
 #include <cmath>
 
-using std::cout;
-using std::cin;
-using std::endl;
+
 
 #define NIGHT (Color){0,20,40,150}
 #define DAY (Color){155,155,0,30}
@@ -16,61 +14,54 @@ using std::endl;
 
 bool settingsActive = false;
 
-bool worldActive = true;
+bool playerCanMove = true;
 
-std::vector<bool*> menus;
+Interaction activeInteraction = Interaction();
+bool isInteracting = false;
+
+std::vector<bool*> flags;
 
 
 
 
-void checkIfWorldActive() {
-    for (bool* menu: menus)
+void checkIfPlayerCanMove() {
+    for (bool* menu: flags)
     {
         if(menu != nullptr && *menu) {
-            worldActive = false;
+            playerCanMove = false;
             return;
         }
     }
-    worldActive = true;
+    playerCanMove = true;
 }
 
-Player player;
-
-FocusableEntity *activeEntity = &player;
 
 FocusableEntity testEntity;
 
-Vector2 GetMouseGamePosition()
-{
-    Vector2 mouseCoords = GetMousePosition();
-    mouseCoords.x += activeEntity->camera.target.x * activeEntity->camera.zoom;
-    mouseCoords.y += activeEntity->camera.target.y * activeEntity->camera.zoom;
-    mouseCoords.x -= activeEntity->camera.offset.x;
-    mouseCoords.y -= activeEntity->camera.offset.y;
-    mouseCoords.x /= activeEntity->camera.zoom;
-    mouseCoords.y /= activeEntity->camera.zoom;
 
-    return mouseCoords;
-}
 
-Camera2D stdCamera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
 
 TextButton testButton(10,10,50,50,"Hello!");
 
 int main(void)
 {
-    menus.push_back(&settingsActive);
+    flags.push_back(&settingsActive);
+    flags.push_back(&isInteracting);
     // Setup
     
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(windowWidth, windowHeight, "raylib [core] example - keyboard input");
 
+    // Set exit key to some key that doesn't exist
+    SetExitKey(2000000000);
+
     Texture2D test = LoadTexture("resources/test.png");
     Texture2D Xyno = LoadTexture("resources/Xyno.png");
     Texture2D butta = LoadTexture("resources/butta.png");
 
     player.camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
+    player.zoom = SCALEFACTOR;
     Vector2 windowPosition = GetWindowPosition();
 
     int maxMonitorWidth, maxMonitorHeight;
@@ -88,7 +79,7 @@ int main(void)
     // Main game loop
     while (!WindowShouldClose())
     {
-        checkIfWorldActive();
+        checkIfPlayerCanMove();
         // Event handling
         if (IsKeyPressed(KEY_F))
         {
@@ -105,7 +96,7 @@ int main(void)
             }
         }
 
-        if(worldActive) {
+        if(playerCanMove) {
             // When left right up is pressed, controls don't work properly!
             if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
             {
@@ -143,7 +134,7 @@ int main(void)
             FocusableEntity old_entity = *activeEntity;
             activeEntity = &testEntity;
             activeEntity->camera.target = old_entity.camera.target;
-            targetZoom = activeEntity->camera.zoom;
+            targetZoom = activeEntity->zoom;
             activeEntity->camera.zoom = old_entity.camera.zoom;
         }
         if (IsKeyPressed(KEY_W))
@@ -151,7 +142,7 @@ int main(void)
             FocusableEntity old_entity = *activeEntity;
             activeEntity = &player;
             activeEntity->camera.target = old_entity.camera.target;
-            targetZoom = activeEntity->camera.zoom;
+            targetZoom = activeEntity->zoom;
             activeEntity->camera.zoom = old_entity.camera.zoom;
         }
         if (IsKeyPressed(KEY_E))
@@ -161,6 +152,11 @@ int main(void)
         if (IsKeyPressed(KEY_R))
         {
             activeEntity->startShake();
+        }
+        if (IsKeyPressed(KEY_T))
+        {
+            activeInteraction = Interaction();
+            isInteracting = true;
         }
         if (IsKeyPressed(KEY_ESCAPE))
         {
@@ -177,6 +173,8 @@ int main(void)
                 windowHeight = maxMonitorHeight;
             SetWindowSize(windowWidth, windowHeight);
         }
+
+        
 
         if (player.v.x > 5)
             player.v.x = 5;
@@ -208,25 +206,33 @@ int main(void)
         DrawRectangle(player.pos.x, player.pos.y, 50, 50, BLUE);
         DrawRectangle(50, 200, PLAYERWIDTH, PLAYERHEIGHT, YELLOW);
 
-        std::string text_string = std::to_string(GetMouseGamePosition().x) + " " + std::to_string(GetMouseGamePosition().y);
-        DrawText(text_string.c_str(), GetMouseGamePosition().x, GetMouseGamePosition().y, 10, RED);
-
+        
         EndMode2D();
 
         if(settingsActive) {
-            BeginMode2D(stdCamera);
+            BeginMode2D(fixedCamera);
             DrawText("hej", 60, 20, 10, RED);
             DrawRectangle(windowWidth / 2 / SCALEFACTOR, windowHeight / 2 / SCALEFACTOR, PLAYERWIDTH, PLAYERHEIGHT, ORANGE);
             testButton.draw();
             EndMode2D();
         }
         
+        if(isInteracting) {
+            if(!activeInteraction.iterate(activeInteraction.index)) {
+                isInteracting = false;
+            }
+        }
 
-        text_string = std::to_string(player.v.x) + " " + std::to_string(player.v.y);
+        std::string text_string3 = std::to_string(player.v.x) + " " + std::to_string(player.v.y);
 
         // Debugging information
         DrawFPS(10, 10);
-        DrawText(text_string.c_str(), 10, 50, 20, RED);
+        DrawText(text_string3.c_str(), 10, 50, 20, RED);
+        std::string text_string = std::to_string(GetMouseGamePosition().x) + " " + std::to_string(GetMouseGamePosition().y);
+        DrawText(text_string.c_str(), 10, 70, 20, RED);
+        std::string text_string2 = std::to_string(GetMouseFixedPosition().x) + " " + std::to_string(GetMouseFixedPosition().y);
+        DrawText(text_string2.c_str(), 10, 90, 20, RED);
+
 
         EndDrawing();
     }
