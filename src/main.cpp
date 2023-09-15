@@ -14,7 +14,7 @@
 
 
 
-Interaction activeInteraction = Interaction();
+Interaction* activeInteraction;
 bool isInteracting = false;
 
 std::vector<bool*> flags;
@@ -46,7 +46,7 @@ int main(void)
     flags.push_back(&settingsActive);
     flags.push_back(&isInteracting);
     // Setup
-    
+    Interaction testInteraction = Interaction();
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(windowWidth, windowHeight, "raylib [core] example - keyboard input");
@@ -155,7 +155,7 @@ int main(void)
         }
         if (IsKeyPressed(KEY_T))
         {
-            activeInteraction = Interaction();
+            activeInteraction = &testInteraction;
             isInteracting = true;
         }
         if (IsKeyPressed(KEY_ESCAPE))
@@ -216,7 +216,7 @@ int main(void)
         }
         
         if(isInteracting) {
-            if(!activeInteraction.iterate(activeInteraction.currentDialogueIndex)) {
+            if(!activeInteraction->iterate()) {
                 isInteracting = false;
             }
         }

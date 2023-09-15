@@ -229,8 +229,8 @@ struct Dialogue
 {
     bool relativeIndex = true;
     std::string text;
-    SelectOption* selectOption = nullptr; // Optional field as a pointer
-    Texture2D* reaction = nullptr; // Optional field as a pointer
+    SelectOption *selectOption = nullptr; // Optional field as a pointer
+    Texture2D *reaction = nullptr;        // Optional field as a pointer
 
     // Constructor with an optional SelectOption
     Dialogue(std::string text, SelectOption *selectOption = nullptr)
@@ -244,12 +244,13 @@ struct Dialogue
     int start()
     {
         BeginMode2D(fixedCamera);
-        if(reaction != nullptr) {
+        if (reaction != nullptr)
+        {
             DrawTexture(*reaction, 100, 50, WHITE);
         }
         DrawText(text.c_str(), 150, 50, 10, PURPLE);
         EndMode2D();
-        
+
         if (selectOption != nullptr)
         {
             return selectOption->start();
@@ -260,12 +261,23 @@ struct Dialogue
         }
         return 0;
     }
+
+    void reset()
+    {
+        if (selectOption != nullptr)
+        {
+            selectOption->selectedOptionIndex = 0;
+        }
+    }
 };
 
 struct Interaction
 {
+    unsigned int currentDialogueIndex = 0;
 
-    int currentDialogueIndex = 0;
+    // Is necessary in case dialogue is shown twice in same interaction
+    bool shouldReset = true;
+
     std::vector<std::unique_ptr<Dialogue>> IEs = {};
     std::vector<Option> options = {Option("Yes"), Option("No", END_CONVERSATION), Option("Let's start over", -1)};
     std::unique_ptr<SelectOption> selectOption = std::make_unique<SelectOption>(options);
@@ -278,22 +290,29 @@ struct Interaction
         IEs.push_back(std::make_unique<Dialogue>("Cool, me too"));
     }
 
-    int iterate(unsigned int i)
+    int iterate()
     {
-        if (i >= IEs.size())
+        if (currentDialogueIndex >= IEs.size())
+        {
+            currentDialogueIndex = 0;
             return 0;
+        }
 
-        int targetDialogue = IEs[i]->start();
+        if (shouldReset)
+        {
+            IEs[currentDialogueIndex]->reset();
+            shouldReset = false;
+        }
+        int targetDialogue = IEs[currentDialogueIndex]->start();
         if (targetDialogue)
         {
-            if (IEs[i])
-            {   
-                if (IEs[i]->relativeIndex)
-                    currentDialogueIndex += targetDialogue;
-                else
-                    currentDialogueIndex = targetDialogue;
-            }
+            if (IEs[currentDialogueIndex]->relativeIndex)
+                currentDialogueIndex += targetDialogue;
+            else
+                currentDialogueIndex = targetDialogue;
+            shouldReset = true;
         }
+
         return 1;
     }
 };

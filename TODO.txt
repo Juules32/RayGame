@@ -11,3 +11,4 @@ TODO'S:
     - fireflies at night effect
     - Running animation implementation
     - animated dialogue reaction
+    - make 'event' interaction type that takes custom function pointer
