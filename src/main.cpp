@@ -12,9 +12,7 @@
 #define DAY (Color){155,155,0,30}
 
 
-bool settingsActive = false;
 
-bool playerCanMove = true;
 
 Interaction activeInteraction = Interaction();
 bool isInteracting = false;
@@ -27,7 +25,7 @@ std::vector<bool*> flags;
 void checkIfPlayerCanMove() {
     for (bool* menu: flags)
     {
-        if(menu != nullptr && *menu) {
+        if(*menu) {
             playerCanMove = false;
             return;
         }
@@ -55,6 +53,8 @@ int main(void)
 
     // Set exit key to some key that doesn't exist
     SetExitKey(2000000000);
+
+    init();
 
     Texture2D test = LoadTexture("resources/test.png");
     Texture2D Xyno = LoadTexture("resources/Xyno.png");
@@ -205,8 +205,6 @@ int main(void)
         DrawTexture(butta, -50, -150, BLUE);
         DrawRectangle(player.pos.x, player.pos.y, 50, 50, BLUE);
         DrawRectangle(50, 200, PLAYERWIDTH, PLAYERHEIGHT, YELLOW);
-
-        
         EndMode2D();
 
         if(settingsActive) {
@@ -218,7 +216,7 @@ int main(void)
         }
         
         if(isInteracting) {
-            if(!activeInteraction.iterate(activeInteraction.index)) {
+            if(!activeInteraction.iterate(activeInteraction.currentDialogueIndex)) {
                 isInteracting = false;
             }
         }

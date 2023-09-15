@@ -3,11 +3,11 @@ UNEXPLAINED MYSTERIES:
 
 TODO'S:
     - lav dialogue text gruppering og scrolling og fast forwarding med controls
+    - reset interaction data når man starter den påny (scroll value, currentDialogueIndex)
+    - make non-relative interaction index changes
     - rendering struktur
-    - shake screen (ændr camera.offset)
     - collission
     - auto nudge hvis man lige knap kan slide langs en væg
     - fireflies at night effect
-    - lav interactions som en tree-like struktur
-    - find out way to show last message before SelectOption
     - Running animation implementation
+    - animated dialogue reaction
