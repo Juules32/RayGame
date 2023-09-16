@@ -6,15 +6,7 @@
 #include <vector>
 #include "globals.hpp"
 
-int GetScaledScreenWidth()
-{
-    return GetScreenWidth() / SCALEFACTOR;
-}
 
-int GetScaledScreenHeight()
-{
-    return GetScreenHeight() / SCALEFACTOR;
-}
 
 struct Entity
 {
@@ -30,13 +22,15 @@ private:
 public:
     Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, 1};
     int zoom = 1;
+    int width = 0;
+    int height = 0;
 
     void updateCamera()
     {
         camera.offset.x = windowWidth / 2;
         camera.offset.y = windowHeight / 2;
-        camera.target.y -= (camera.target.y - (pos.y + PLAYERHEIGHT / 2)) * 0.15;
-        camera.target.x -= (camera.target.x - (pos.x + PLAYERWIDTH / 2)) * 0.15;
+        camera.target.y -= (camera.target.y - (pos.y + width / 2)) * 0.15;
+        camera.target.x -= (camera.target.x - (pos.x + height / 2)) * 0.15;
         camera.zoom += (targetZoom - camera.zoom) * 0.15;
 
         if (shakeTime)
@@ -55,12 +49,122 @@ public:
 
 struct Player : FocusableEntity
 {
+    std::string name;
     Vector2 v = {0, 0};
+    int frameIncrementer = 0;
+    int frameTime = 5; // In frames
+    int frameCount = 0;
+    int frameWidth = 48;
+
+    Texture2D idle, runRight, runLeft, runUp, runDown;
+
+    Player(std::string name) : name(name)
+    {
+        idle = LoadTexture(("resources/" + name + "/" + name + ".png").c_str());
+        runRight = LoadTexture(("resources/" + name + "/Run/Right.png").c_str());
+        runLeft = LoadTexture(("resources/" + name + "/Run/Left.png").c_str());
+        runUp = LoadTexture(("resources/" + name + "/Run/Up.png").c_str());
+        runDown = LoadTexture(("resources/" + name + "/Run/Down.png").c_str());
+    }
+
+    void updateMovement()
+    {
+        if (playerCanMove)
+        {
+            // When left right up is pressed, controls don't work properly!
+            if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
+            {
+                v.x += ACCELERATION;
+            }
+            else if (!IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_LEFT))
+            {
+                v.x -= ACCELERATION;
+            }
+            else
+            {
+                v.x *= FRICTION;
+            }
+            if (IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN))
+            {
+                v.y -= ACCELERATION;
+            }
+            else if (!IsKeyDown(KEY_UP) && IsKeyDown(KEY_DOWN))
+            {
+                v.y += ACCELERATION;
+            }
+            else
+            {
+                v.y *= FRICTION;
+            }
+        }
+        else
+        {
+            v.x = 0;
+            v.y = 0;
+        }
+
+        if (v.x > MAX_SPEED)
+            v.x = MAX_SPEED;
+        if (v.x < -MAX_SPEED)
+            v.x = -MAX_SPEED;
+        if (v.y > MAX_SPEED)
+            v.y = MAX_SPEED;
+        if (v.y < -MAX_SPEED)
+            v.y = -MAX_SPEED;
+
+        pos.x += v.x;
+        pos.y += v.y;
+        if (std::fabs(v.x) < MOVEMENT_CUTOFF)
+            v.x = 0;
+        if (std::fabs(v.y) < MOVEMENT_CUTOFF)
+            v.y = 0;
+    }
+
+    void draw()
+    {
+
+        ++frameIncrementer;
+
+        float absX = std::fabs(v.x);
+        float absY = std::fabs(v.y);
+
+        if (absX == 0 && absY == 0)
+        {
+            DrawTexture(idle, pos.x, pos.y, WHITE);
+            frameIncrementer = 0;
+            return;
+        }
+
+        absX += 0.1;
+
+        if (absX >= absY)
+        {
+            if (v.x >= 0)
+            {
+                DrawTextureRec(runRight, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+            else
+            {
+                DrawTextureRec(runLeft, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+        }
+        else
+        {
+            if (v.y >= 0)
+            {
+                DrawTextureRec(runDown, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+            else
+            {
+                DrawTextureRec(runUp, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+        }
+
+        frameCount = (frameIncrementer / frameTime) % 8;
+    }
 };
 
-Player player;
-
-FocusableEntity *activeEntity = &player;
+FocusableEntity *activeEntity;
 
 Vector2 GetMouseGamePosition()
 {

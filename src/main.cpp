@@ -1,26 +1,15 @@
 
 #include "raylib.h"
 #include <iostream>
-#include "types.hpp"
 #include <memory>
 #include <vector>
 #include <cmath>
-
-
-
-#define NIGHT (Color){0,20,40,150}
-#define DAY (Color){155,155,0,30}
-
-
-
+#include "types.hpp"
 
 Interaction* activeInteraction;
 bool isInteracting = false;
 
 std::vector<bool*> flags;
-
-
-
 
 void checkIfPlayerCanMove() {
     for (bool* menu: flags)
@@ -33,11 +22,7 @@ void checkIfPlayerCanMove() {
     playerCanMove = true;
 }
 
-
 FocusableEntity testEntity;
-
-
-
 
 TextButton testButton(10,10,50,50,"Hello!");
 
@@ -56,12 +41,17 @@ int main(void)
 
     init();
 
-    Texture2D test = LoadTexture("resources/test.png");
-    Texture2D Xyno = LoadTexture("resources/Xyno.png");
-    Texture2D butta = LoadTexture("resources/butta.png");
+    Player player = Player("Xyno");
+    activeEntity = &player;
+
+    Texture2D background = LoadTexture("resources/background.png");
+    Texture2D foreground = LoadTexture("resources/foreground.png");
 
     player.camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
     player.zoom = SCALEFACTOR;
+    player.width = PLAYERWIDTH;
+    player.height = PLAYERHEIGHT;
+
     Vector2 windowPosition = GetWindowPosition();
 
     int maxMonitorWidth, maxMonitorHeight;
@@ -96,37 +86,7 @@ int main(void)
             }
         }
 
-        if(playerCanMove) {
-            // When left right up is pressed, controls don't work properly!
-            if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
-            {
-                player.v.x += 1;
-            }
-            else if (!IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_LEFT))
-            {
-                player.v.x -= 1;
-            }
-            else
-            {
-                player.v.x *= 0.8;
-            }
-            if (IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN))
-            {
-                player.v.y -= MOVE_SPEED;
-            }
-            else if (!IsKeyDown(KEY_UP) && IsKeyDown(KEY_DOWN))
-            {
-                player.v.y += MOVE_SPEED;
-            }
-            else
-            {
-                player.v.y *= FRICTION;
-            }
-        }
-        else {
-            player.v.x = 0;
-            player.v.y = 0;
-        }
+        player.updateMovement();
         
 
         if (IsKeyPressed(KEY_Q))
@@ -174,36 +134,17 @@ int main(void)
             SetWindowSize(windowWidth, windowHeight);
         }
 
-        
-
-        if (player.v.x > 5)
-            player.v.x = 5;
-        if (player.v.x < -5)
-            player.v.x = -5;
-        if (player.v.y > 5)
-            player.v.y = 5;
-        if (player.v.y < -5)
-            player.v.y = -5;
-
-        // Physics
-        player.pos.x += player.v.x;
-        player.pos.y += player.v.y;
-        if (abs(player.v.x) < 0.5)
-            player.v.x = 0;
-        if (abs(player.v.y) < 0.5)
-            player.v.y = 0;
-
         // Update camera position to player position
         activeEntity->updateCamera();
         
         // Rendering
         BeginDrawing();
+        
         ClearBackground(RAYWHITE);
         BeginMode2D(activeEntity->camera);
-        DrawTexture(test, 0, 0, WHITE);
-        DrawTexture(Xyno, 50, 150, BLUE);
-        DrawTexture(butta, -50, -150, BLUE);
-        DrawRectangle(player.pos.x, player.pos.y, 50, 50, BLUE);
+        DrawTexture(background, 0, 0, WHITE);
+        DrawTexture(foreground, 0, 0, BLUE);
+        player.draw();
         DrawRectangle(50, 200, PLAYERWIDTH, PLAYERHEIGHT, YELLOW);
         EndMode2D();
 
@@ -231,12 +172,11 @@ int main(void)
         std::string text_string2 = std::to_string(GetMouseFixedPosition().x) + " " + std::to_string(GetMouseFixedPosition().y);
         DrawText(text_string2.c_str(), 10, 90, 20, RED);
 
-
         EndDrawing();
     }
 
-    UnloadTexture(test);
-    UnloadTexture(Xyno);
+    UnloadTexture(background);
+    UnloadTexture(foreground);
     CloseWindow();
     return 0;
 }
