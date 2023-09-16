@@ -6,30 +6,13 @@
 #include <cmath>
 #include "types.hpp"
 
-Interaction* activeInteraction;
-bool isInteracting = false;
 
-std::vector<bool*> flags;
 
-void checkIfPlayerCanMove() {
-    for (bool* menu: flags)
-    {
-        if(*menu) {
-            playerCanMove = false;
-            return;
-        }
-    }
-    playerCanMove = true;
-}
 
-FocusableEntity testEntity;
 
-TextButton testButton(10,10,50,50,"Hello!");
 
 int main(void)
 {
-    flags.push_back(&settingsActive);
-    flags.push_back(&isInteracting);
     // Setup
     Interaction testInteraction = Interaction();
 
@@ -41,8 +24,12 @@ int main(void)
 
     init();
 
+    TextButton testButton(10,10,50,50,"Hello!");
+    FocusableEntity testEntity;
+    Interaction* activeInteraction;
     Player player = Player("Xyno");
-    activeEntity = &player;
+    Player* activePlayer = &player;
+    FocusableEntity* activeEntity = activePlayer;
 
     Texture2D background = LoadTexture("resources/background.png");
     Texture2D foreground = LoadTexture("resources/foreground.png");
@@ -86,7 +73,6 @@ int main(void)
             }
         }
 
-        player.updateMovement();
         
 
         if (IsKeyPressed(KEY_Q))
@@ -100,7 +86,7 @@ int main(void)
         if (IsKeyPressed(KEY_W))
         {
             FocusableEntity old_entity = *activeEntity;
-            activeEntity = &player;
+            activeEntity = activePlayer;
             activeEntity->camera.target = old_entity.camera.target;
             targetZoom = activeEntity->zoom;
             activeEntity->camera.zoom = old_entity.camera.zoom;
@@ -133,6 +119,9 @@ int main(void)
                 windowHeight = maxMonitorHeight;
             SetWindowSize(windowWidth, windowHeight);
         }
+
+        // Update movement of active player
+        activePlayer->updateMovement();
 
         // Update camera position to player position
         activeEntity->updateCamera();
@@ -167,7 +156,7 @@ int main(void)
         // Debugging information
         DrawFPS(10, 10);
         DrawText(text_string3.c_str(), 10, 50, 20, RED);
-        std::string text_string = std::to_string(GetMouseGamePosition().x) + " " + std::to_string(GetMouseGamePosition().y);
+        std::string text_string = std::to_string(GetMousePosition(activeEntity->camera).x) + " " + std::to_string(GetMousePosition(activeEntity->camera).y);
         DrawText(text_string.c_str(), 10, 70, 20, RED);
         std::string text_string2 = std::to_string(GetMouseFixedPosition().x) + " " + std::to_string(GetMouseFixedPosition().y);
         DrawText(text_string2.c_str(), 10, 90, 20, RED);

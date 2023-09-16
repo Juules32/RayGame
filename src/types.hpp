@@ -164,30 +164,6 @@ struct Player : FocusableEntity
     }
 };
 
-FocusableEntity *activeEntity;
-
-Vector2 GetMouseGamePosition()
-{
-    Vector2 mouseCoords = GetMousePosition();
-    mouseCoords.x += activeEntity->camera.target.x * activeEntity->camera.zoom;
-    mouseCoords.y += activeEntity->camera.target.y * activeEntity->camera.zoom;
-    mouseCoords.x -= activeEntity->camera.offset.x;
-    mouseCoords.y -= activeEntity->camera.offset.y;
-    mouseCoords.x /= activeEntity->camera.zoom;
-    mouseCoords.y /= activeEntity->camera.zoom;
-
-    return mouseCoords;
-}
-
-Vector2 GetMouseFixedPosition()
-{
-    Vector2 mouseCoords = GetMousePosition();
-    mouseCoords.x /= fixedCamera.zoom;
-    mouseCoords.y /= fixedCamera.zoom;
-
-    return mouseCoords;
-}
-
 struct Button
 {
     int x;
