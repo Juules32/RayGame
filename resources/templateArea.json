@@ -1,0 +1,33 @@
+/*
+    Background and collision images are loaded automatically by name
+    Therefore, if alt background exists, other images and collision should be loaded
+    objects are loaded by name only.
+    conditionals exist in their respective json file
+*/
+
+{
+    "musicID": "001B-town",
+    "ambienceID": "002-wind",
+    "altBackground": {
+        "requirement": "have500gold"
+    },
+    "altMusic": {
+        "requirements": ["have500gold"]
+    },
+    "altAmbience": {
+        "requirement": "have500gold"
+    },
+    "objects": [
+        "sheep",
+        "manWithCigarette",
+        "dealer"
+    ],
+    "exits": [
+        {
+            "toArea": "city",
+            "xywh": [20, 20, 50, 20],
+            "requirement": "talkToXeno",
+            "requirements": ["onlyPhase1", "have500iq"]
+        }
+    ]
+}

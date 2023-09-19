@@ -36,8 +36,10 @@ int main(void)
     activeEntity = activePlayer;
 
     area::change("plains", (Vector2){150, 150});
-    Texture2D background = LoadTexture("resources/background.png");    
     Texture2D foreground = LoadTexture("resources/foreground.png");
+    Image back = LoadImage("resources/plains.png");
+    Color *colors = LoadImageColors(back);
+
     Image foreground2 = LoadImage("resources/foreground.png");
     player.camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
     player.zoom = SCALEFACTOR;
@@ -161,11 +163,17 @@ int main(void)
         std::string text_string2 = std::to_string(GetMouseFixedPosition().x) + " " + std::to_string(GetMouseFixedPosition().y);
         DrawText(text_string2.c_str(), 10, 90, 20, RED);
         DrawText(area::name.c_str(), 100, 10, 20, ORANGE);
-
+        if (GetMousePosition(activeEntity->camera).x >= 0 && GetMousePosition(activeEntity->camera).x < area::background.width &&
+                GetMousePosition(activeEntity->camera).y >= 0 && GetMousePosition(activeEntity->camera).y < area::background.height)
+            {
+                int index = ((int)GetMousePosition(activeEntity->camera).y * area::background.width) + (int)GetMousePosition(activeEntity->camera).x;
+                Color pixelColor = colors[index];
+                std::string vak = ("Pixel Color: R=" + std::to_string(pixelColor.r) + ", G=" + std::to_string(pixelColor.g) + ", B=" + std::to_string(pixelColor.b) + ", A=" + std::to_string(pixelColor.a));
+                DrawText(vak.c_str(), 180, 20, 10, BLUE);
+            }
         EndDrawing();
     }
 
-    UnloadTexture(background);
     UnloadTexture(foreground);
     CloseWindow();
     return 0;

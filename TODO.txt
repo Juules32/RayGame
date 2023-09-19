@@ -2,14 +2,18 @@ UNEXPLAINED MYSTERIES:
     - What determines font size in relation to camera zoom
 
 TODO'S:
+    - json area loading
+    - json object loading
+    - collission
+    - auto nudge hvis man lige knap kan slide langs en væg
+    - bedre rendering struktur
+
+FUTURE TODO's:
     - make normalized speed movement (evt. ved at ændre player.v til retning og vinkel)
     - separate drawing interaction from interacting with interaction (to make settings disable other input)
     - make 'event' interaction type that takes custom function pointer
     - make non-relative interaction index changes
     - lav dialogue text gruppering og scrolling og fast forwarding med controls
-    - collission
-    - auto nudge hvis man lige knap kan slide langs en væg
-    - bedre rendering struktur
     - fireflies at night effect
     - animated dialogue reaction
     - add player shadow
