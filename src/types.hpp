@@ -4,22 +4,19 @@
 #include <cmath>
 #include <memory>
 #include <vector>
+#include <map>
+#include <functional>
 #include "globals.hpp"
 
 
-
-struct Entity
-{
-    Vector2 pos = {0, 0};
-};
-
-struct FocusableEntity : Entity
+struct FocusableEntity
 {
 
 private:
     float shakeTime = 0;
 
 public:
+    Vector2 pos = {0, 0};
     Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, 1};
     int zoom = 1;
     int width = 0;
@@ -29,8 +26,8 @@ public:
     {
         camera.offset.x = windowWidth / 2;
         camera.offset.y = windowHeight / 2;
-        camera.target.y -= (camera.target.y - (pos.y + width / 2)) * 0.15;
-        camera.target.x -= (camera.target.x - (pos.x + height / 2)) * 0.15;
+        camera.target.x -= (camera.target.x - (pos.x + width / 2)) * 0.15;
+        camera.target.y -= (camera.target.y - (pos.y + height / 2)) * 0.15;
         camera.zoom += (targetZoom - camera.zoom) * 0.15;
 
         if (shakeTime)
@@ -39,6 +36,13 @@ public:
             camera.offset.y += sin(shakeTime * 0.15) * shakeTime * 0.3;
             --shakeTime;
         }
+    }
+
+    void alignCamera() {
+        camera.offset.x = windowWidth / 2;
+        camera.offset.y = windowHeight / 2;
+        camera.target.x = pos.x + width / 2;
+        camera.target.y = pos.y + height / 2;
     }
 
     void startShake()
@@ -123,11 +127,13 @@ struct Player : FocusableEntity
     void draw()
     {
 
-        ++frameIncrementer;
-
         float absX = std::fabs(v.x);
         float absY = std::fabs(v.y);
 
+        if (absX > 2 || absY > 2)
+        {
+            ++frameIncrementer;
+        }
         if (absX == 0 && absY == 0)
         {
             DrawTexture(idle, pos.x, pos.y, WHITE);
@@ -396,3 +402,102 @@ struct Interaction
         return 1;
     }
 };
+
+struct Object : FocusableEntity
+{
+    Texture2D texture;
+
+    Object(std::string texturePath, int x, int y, int w, int h)
+    {
+        texture = LoadTexture(texturePath.c_str());
+        pos.x = x;
+        pos.y = y;
+        width = w;
+        height = h;
+    }
+
+    void draw()
+    {
+        DrawTexture(texture, pos.x, pos.y, WHITE);
+    }
+};
+
+struct Exit : Rectangle
+{
+    Exit(float x, float y, float w, float h) : Rectangle{x, y, w, h} {};
+};
+
+Player* activePlayer;
+
+namespace area
+{
+    std::string name;
+    Texture2D background;
+    std::string musicID, ambienceID, oldMusicID, oldAmbienceID;
+    float volume; // Used to incrementally increase old/new music and ambience volumes
+    std::vector<Object> objects;
+    std::vector<Exit> exits;
+
+    std::map<std::string, std::function<void()>> selector;
+    
+
+    void initializeAreaContents()
+    {
+
+        selector["plains"] = []()
+        {
+            switch (gamePhase)
+            {
+            case 1:
+                objects.push_back(Object("resources/ninja.png", 20, 20, 20, 20));
+                break;
+            
+            }
+        };
+        selector["city"] = []()
+        {
+        };
+    }
+
+    void change(std::string areaName, Vector2 pos) {
+
+        // Unload pre-existing textures and audio
+        if(background.id)
+            UnloadTexture(background);
+        for (size_t i = 0; i < objects.size(); i++)
+        {
+            UnloadTexture(objects[i].texture);
+        }
+        objects.clear();
+
+        //Move player to given position and align camera accordingly
+        activePlayer->pos = pos;
+        activePlayer->alignCamera();
+
+        // Updates to given area name and loads content through selector
+        name = areaName;
+        background = LoadTexture(("resources/" + name + ".png").c_str());
+        selector[areaName]();
+    }
+
+    //Make function checkInteractions that checks for exits, interactions etc.
+
+    void draw() {
+        DrawTexture(background, 0, 0, WHITE);
+        for (size_t i = 0; i < objects.size(); i++)
+        {
+            objects[i].draw();
+        }
+        
+    }
+}
+
+FocusableEntity* activeEntity;
+
+void changeActiveEntity(FocusableEntity* newEntity) {
+    FocusableEntity old_entity = *activeEntity;
+    activeEntity = newEntity;
+    activeEntity->camera.target = old_entity.camera.target;
+    targetZoom = activeEntity->zoom;
+    activeEntity->camera.zoom = old_entity.camera.zoom;
+}

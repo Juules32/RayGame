@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include <iostream>
+#include <vector>
 
 using std::cout;
 using std::cin;
@@ -14,6 +15,7 @@ const float MAX_SPEED = 2.5;
 const float FRICTION = 0.6;
 const float MOVEMENT_CUTOFF = 0.1;
 const int END_CONVERSATION = 100000;
+int gamePhase = 1;
 const Color NIGHT = {0,20,40,150};
 const Color DAY = {155,155,0,30};
 

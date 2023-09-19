@@ -18,22 +18,27 @@ int main(void)
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(windowWidth, windowHeight, "raylib [core] example - keyboard input");
+    SetTargetFPS(60);
 
     // Set exit key to some key that doesn't exist
     SetExitKey(2000000000);
 
     init();
 
+    area::initializeAreaContents();
+
+
     TextButton testButton(10,10,50,50,"Hello!");
     FocusableEntity testEntity;
     Interaction* activeInteraction;
     Player player = Player("Xyno");
-    Player* activePlayer = &player;
-    FocusableEntity* activeEntity = activePlayer;
+    activePlayer = &player;
+    activeEntity = activePlayer;
 
-    Texture2D background = LoadTexture("resources/background.png");
+    area::change("plains", (Vector2){150, 150});
+    Texture2D background = LoadTexture("resources/background.png");    
     Texture2D foreground = LoadTexture("resources/foreground.png");
-
+    Image foreground2 = LoadImage("resources/foreground.png");
     player.camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
     player.zoom = SCALEFACTOR;
     player.width = PLAYERWIDTH;
@@ -51,7 +56,6 @@ int main(void)
             maxMonitorHeight = GetMonitorHeight(i);
     }
 
-    SetTargetFPS(60);
 
     // Main game loop
     while (!WindowShouldClose())
@@ -74,22 +78,14 @@ int main(void)
         }
 
         
-
+        // Testing features
         if (IsKeyPressed(KEY_Q))
         {
-            FocusableEntity old_entity = *activeEntity;
-            activeEntity = &testEntity;
-            activeEntity->camera.target = old_entity.camera.target;
-            targetZoom = activeEntity->zoom;
-            activeEntity->camera.zoom = old_entity.camera.zoom;
+            changeActiveEntity(&testEntity);
         }
         if (IsKeyPressed(KEY_W))
         {
-            FocusableEntity old_entity = *activeEntity;
-            activeEntity = activePlayer;
-            activeEntity->camera.target = old_entity.camera.target;
-            targetZoom = activeEntity->zoom;
-            activeEntity->camera.zoom = old_entity.camera.zoom;
+            changeActiveEntity(activePlayer);
         }
         if (IsKeyPressed(KEY_E))
         {
@@ -103,6 +99,10 @@ int main(void)
         {
             activeInteraction = &testInteraction;
             isInteracting = true;
+        }
+        if (IsKeyPressed(KEY_Y))
+        {
+            area::change("city", (Vector2){50, 50});
         }
         if (IsKeyPressed(KEY_ESCAPE))
         {
@@ -131,7 +131,7 @@ int main(void)
         
         ClearBackground(RAYWHITE);
         BeginMode2D(activeEntity->camera);
-        DrawTexture(background, 0, 0, WHITE);
+        area::draw();
         DrawTexture(foreground, 0, 0, BLUE);
         player.draw();
         DrawRectangle(50, 200, PLAYERWIDTH, PLAYERHEIGHT, YELLOW);
@@ -160,6 +160,7 @@ int main(void)
         DrawText(text_string.c_str(), 10, 70, 20, RED);
         std::string text_string2 = std::to_string(GetMouseFixedPosition().x) + " " + std::to_string(GetMouseFixedPosition().y);
         DrawText(text_string2.c_str(), 10, 90, 20, RED);
+        DrawText(area::name.c_str(), 100, 10, 20, ORANGE);
 
         EndDrawing();
     }
