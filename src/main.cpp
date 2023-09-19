@@ -169,7 +169,7 @@ int main(void)
                 int index = ((int)GetMousePosition(activeEntity->camera).y * area::background.width) + (int)GetMousePosition(activeEntity->camera).x;
                 Color pixelColor = colors[index];
                 std::string vak = ("Pixel Color: R=" + std::to_string(pixelColor.r) + ", G=" + std::to_string(pixelColor.g) + ", B=" + std::to_string(pixelColor.b) + ", A=" + std::to_string(pixelColor.a));
-                DrawText(vak.c_str(), 180, 20, 10, BLUE);
+                DrawText(vak.c_str(), 180, 20, 20, BLUE);
             }
         EndDrawing();
     }
