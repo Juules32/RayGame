@@ -8,7 +8,6 @@
 #include <functional>
 #include "globals.hpp"
 
-
 struct FocusableEntity
 {
 
@@ -38,7 +37,8 @@ public:
         }
     }
 
-    void alignCamera() {
+    void alignCamera()
+    {
         camera.offset.x = windowWidth / 2;
         camera.offset.y = windowHeight / 2;
         camera.target.x = pos.x + width / 2;
@@ -48,125 +48,6 @@ public:
     void startShake()
     {
         shakeTime = 100;
-    }
-};
-
-struct Player : FocusableEntity
-{
-    std::string name;
-    Vector2 v = {0, 0};
-    int frameIncrementer = 0;
-    int frameTime = 5; // In frames
-    int frameCount = 0;
-    int frameWidth = 48;
-
-    Texture2D idle, runRight, runLeft, runUp, runDown;
-
-    Player(std::string name) : name(name)
-    {
-        idle = LoadTexture(("resources/" + name + "/" + name + ".png").c_str());
-        runRight = LoadTexture(("resources/" + name + "/Run/Right.png").c_str());
-        runLeft = LoadTexture(("resources/" + name + "/Run/Left.png").c_str());
-        runUp = LoadTexture(("resources/" + name + "/Run/Up.png").c_str());
-        runDown = LoadTexture(("resources/" + name + "/Run/Down.png").c_str());
-    }
-
-    void updateMovement()
-    {
-        if (playerCanMove)
-        {
-            // When left right up is pressed, controls don't work properly!
-            if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
-            {
-                v.x += ACCELERATION;
-            }
-            else if (!IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_LEFT))
-            {
-                v.x -= ACCELERATION;
-            }
-            else
-            {
-                v.x *= FRICTION;
-            }
-            if (IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN))
-            {
-                v.y -= ACCELERATION;
-            }
-            else if (!IsKeyDown(KEY_UP) && IsKeyDown(KEY_DOWN))
-            {
-                v.y += ACCELERATION;
-            }
-            else
-            {
-                v.y *= FRICTION;
-            }
-        }
-        else
-        {
-            v.x = 0;
-            v.y = 0;
-        }
-
-        if (v.x > MAX_SPEED)
-            v.x = MAX_SPEED;
-        if (v.x < -MAX_SPEED)
-            v.x = -MAX_SPEED;
-        if (v.y > MAX_SPEED)
-            v.y = MAX_SPEED;
-        if (v.y < -MAX_SPEED)
-            v.y = -MAX_SPEED;
-
-        pos.x += v.x;
-        pos.y += v.y;
-        if (std::fabs(v.x) < MOVEMENT_CUTOFF)
-            v.x = 0;
-        if (std::fabs(v.y) < MOVEMENT_CUTOFF)
-            v.y = 0;
-    }
-
-    void draw()
-    {
-
-        float absX = std::fabs(v.x);
-        float absY = std::fabs(v.y);
-
-        if (absX > 2 || absY > 2)
-        {
-            ++frameIncrementer;
-        }
-        if (absX == 0 && absY == 0)
-        {
-            DrawTexture(idle, pos.x, pos.y, WHITE);
-            frameIncrementer = 0;
-            return;
-        }
-
-        absX += 0.1;
-
-        if (absX >= absY)
-        {
-            if (v.x >= 0)
-            {
-                DrawTextureRec(runRight, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
-            }
-            else
-            {
-                DrawTextureRec(runLeft, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
-            }
-        }
-        else
-        {
-            if (v.y >= 0)
-            {
-                DrawTextureRec(runDown, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
-            }
-            else
-            {
-                DrawTextureRec(runUp, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
-            }
-        }
-
-        frameCount = (frameIncrementer / frameTime) % 8;
     }
 };
 
@@ -427,8 +308,6 @@ struct Exit : Rectangle
     Exit(float x, float y, float w, float h) : Rectangle{x, y, w, h} {};
 };
 
-Player* activePlayer;
-
 namespace area
 {
     std::string name;
@@ -439,7 +318,6 @@ namespace area
     std::vector<Exit> exits;
 
     std::map<std::string, std::function<void()>> selector;
-    
 
     void initializeAreaContents()
     {
@@ -451,18 +329,17 @@ namespace area
             case 1:
                 objects.push_back(Object("resources/ninja.png", 20, 20, 20, 20));
                 break;
-            
             }
         };
-        selector["city"] = []()
-        {
+        selector["city"] = []() {
         };
     }
 
-    void change(std::string areaName, Vector2 pos) {
+    void change(std::string areaName, Vector2 pos)
+    {
 
         // Unload pre-existing textures and audio
-        if(background.id)
+        if (background.id)
             UnloadTexture(background);
         for (size_t i = 0; i < objects.size(); i++)
         {
@@ -470,9 +347,9 @@ namespace area
         }
         objects.clear();
 
-        //Move player to given position and align camera accordingly
-        activePlayer->pos = pos;
-        activePlayer->alignCamera();
+        // Move player to given position and align camera accordingly
+        // activePlayer->pos = pos;
+        // activePlayer->alignCamera();
 
         // Updates to given area name and loads content through selector
         name = areaName;
@@ -480,24 +357,180 @@ namespace area
         selector[areaName]();
     }
 
-    //Make function checkInteractions that checks for exits, interactions etc.
+    // Make function checkInteractions that checks for exits, interactions etc.
 
-    void draw() {
+    void draw()
+    {
         DrawTexture(background, 0, 0, WHITE);
         for (size_t i = 0; i < objects.size(); i++)
         {
             objects[i].draw();
         }
-        
     }
 }
 
-FocusableEntity* activeEntity;
+FocusableEntity *activeEntity;
 
-void changeActiveEntity(FocusableEntity* newEntity) {
+void changeActiveEntity(FocusableEntity *newEntity)
+{
     FocusableEntity old_entity = *activeEntity;
     activeEntity = newEntity;
     activeEntity->camera.target = old_entity.camera.target;
     targetZoom = activeEntity->zoom;
     activeEntity->camera.zoom = old_entity.camera.zoom;
 }
+
+Color *colors;
+
+struct Player : FocusableEntity
+{
+    std::string name;
+    Vector2 v = {0, 0};
+    int frameIncrementer = 0;
+    int frameTime = 5; // In frames
+    int frameCount = 0;
+    int frameWidth = 48;
+
+    Texture2D idle, runRight, runLeft, runUp, runDown;
+
+    Player(std::string name) : name(name)
+    {
+        idle = LoadTexture(("resources/" + name + "/" + name + ".png").c_str());
+        runRight = LoadTexture(("resources/" + name + "/Run/Right.png").c_str());
+        runLeft = LoadTexture(("resources/" + name + "/Run/Left.png").c_str());
+        runUp = LoadTexture(("resources/" + name + "/Run/Up.png").c_str());
+        runDown = LoadTexture(("resources/" + name + "/Run/Down.png").c_str());
+    }
+
+    void updateMovement()
+    {
+        if (playerCanMove)
+        {
+            // When left right up is pressed, controls don't work properly!
+            if (IsKeyDown(KEY_RIGHT) && !IsKeyDown(KEY_LEFT))
+            {
+                v.x += ACCELERATION;
+            }
+            else if (!IsKeyDown(KEY_RIGHT) && IsKeyDown(KEY_LEFT))
+            {
+                v.x -= ACCELERATION;
+            }
+            else
+            {
+                v.x *= FRICTION;
+            }
+            if (IsKeyDown(KEY_UP) && !IsKeyDown(KEY_DOWN))
+            {
+                v.y -= ACCELERATION;
+            }
+            else if (!IsKeyDown(KEY_UP) && IsKeyDown(KEY_DOWN))
+            {
+                v.y += ACCELERATION;
+            }
+            else
+            {
+                v.y *= FRICTION;
+            }
+        }
+        else
+        {
+            v.x = 0;
+            v.y = 0;
+        }
+
+        if (v.x > MAX_SPEED)
+            v.x = MAX_SPEED;
+        if (v.x < -MAX_SPEED)
+            v.x = -MAX_SPEED;
+        if (v.y > MAX_SPEED)
+            v.y = MAX_SPEED;
+        if (v.y < -MAX_SPEED)
+            v.y = -MAX_SPEED;
+
+        Vector2 posCopy = pos;
+
+        pos.x += v.x;
+        if (overlapsWithCollision())
+        {
+            pos.x = posCopy.x;
+        }
+
+        pos.y += v.y;
+        if (overlapsWithCollision())
+        {
+            pos.y = posCopy.y;
+        }
+
+        if (std::fabs(v.x) < MOVEMENT_CUTOFF)
+            v.x = 0;
+        if (std::fabs(v.y) < MOVEMENT_CUTOFF)
+            v.y = 0;
+    }
+
+    Rectangle getCollisionBox()
+    {
+        return (Rectangle) {pos.x + 16, pos.y + 32, 16, 16};
+    }
+
+    bool overlapsWithCollision()
+    {
+        Rectangle collisionBox = getCollisionBox();
+        for (int yVal = collisionBox.y; yVal < collisionBox.y + collisionBox.height; yVal++)
+        {
+            for (int xVal = collisionBox.width; xVal < collisionBox.x + collisionBox.width; xVal++)
+            {
+                int index = yVal * area::background.width + xVal;
+                if (colors[index].a > 100)
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    void draw()
+    {
+
+        float absX = std::fabs(v.x);
+        float absY = std::fabs(v.y);
+
+        if (absX > 2 || absY > 2)
+        {
+            ++frameIncrementer;
+        }
+        if (absX == 0 && absY == 0)
+        {
+            DrawTexture(idle, pos.x, pos.y, WHITE);
+            frameIncrementer = 0;
+            return;
+        }
+
+        absX += 0.1;
+
+        if (absX >= absY)
+        {
+            if (v.x >= 0)
+            {
+                DrawTextureRec(runRight, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+            else
+            {
+                DrawTextureRec(runLeft, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+        }
+        else
+        {
+            if (v.y >= 0)
+            {
+                DrawTextureRec(runDown, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+            else
+            {
+                DrawTextureRec(runUp, (Rectangle){frameWidth * frameCount, 48, 48, 48}, pos, WHITE);
+            }
+        }
+
+        frameCount = (frameIncrementer / frameTime) % 8;
+    }
+};
+
+Player *activePlayer;

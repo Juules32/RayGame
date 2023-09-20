@@ -1,5 +1,5 @@
 /*
-    Background and collision images are loaded automatically by name
+    Background, foreground and collision images are loaded automatically by name
     Therefore, if alt background exists, other images and collision should be loaded
     objects are loaded by name only.
     conditionals exist in their respective json file

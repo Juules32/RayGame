@@ -37,9 +37,8 @@ int main(void)
 
     area::change("plains", (Vector2){150, 150});
     Texture2D foreground = LoadTexture("resources/foreground.png");
-    Image back = LoadImage("resources/plains.png");
-    Color *colors = LoadImageColors(back);
-
+    Image back = LoadImage("resources/foreground.png");
+    colors = LoadImageColors(back);
     Image foreground2 = LoadImage("resources/foreground.png");
     player.camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
     player.zoom = SCALEFACTOR;
