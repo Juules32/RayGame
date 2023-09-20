@@ -469,12 +469,20 @@ struct Player : FocusableEntity
 
     Rectangle getCollisionBox()
     {
-        return (Rectangle) {pos.x + 16, pos.y + 32, 16, 16};
+        return (Rectangle){pos.x + 16, pos.y + 32, 16, 16};
     }
 
     bool overlapsWithCollision()
     {
         Rectangle collisionBox = getCollisionBox();
+
+        if (collisionBox.x <= 0 || collisionBox.y <= 0 ||
+            collisionBox.x + collisionBox.width > area::background.width ||
+            collisionBox.y + collisionBox.height > area::background.height)
+        {
+            return true;
+        }
+
         for (int yVal = collisionBox.y; yVal < collisionBox.y + collisionBox.height; yVal++)
         {
             for (int xVal = collisionBox.width; xVal < collisionBox.x + collisionBox.width; xVal++)
