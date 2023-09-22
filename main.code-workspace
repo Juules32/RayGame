@@ -61,7 +61,17 @@
 			"numeric": "cpp",
 			"random": "cpp",
 			"numbers": "cpp",
-			"map": "cpp"
+			"map": "cpp",
+			"forward_list": "cpp",
+			"any": "cpp",
+			"codecvt": "cpp",
+			"cstring": "cpp",
+			"ctime": "cpp",
+			"ratio": "cpp",
+			"iomanip": "cpp",
+			"ranges": "cpp",
+			"span": "cpp",
+			"valarray": "cpp"
 		}
 	}
 }

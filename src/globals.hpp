@@ -86,6 +86,6 @@ namespace Xyno {
     }
 }
 
-void init() {
+void initGlobals() {
     Xyno::init();
 }

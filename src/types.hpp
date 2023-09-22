@@ -6,7 +6,9 @@
 #include <vector>
 #include <map>
 #include <functional>
+#include <fstream>
 #include "globals.hpp"
+#include "../libs/json.hpp"
 
 struct FocusableEntity
 {
@@ -16,7 +18,7 @@ private:
 
 public:
     Vector2 pos = {0, 0};
-    Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, 1};
+    Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
     int zoom = 1;
     int width = 0;
     int height = 0;
@@ -196,14 +198,21 @@ struct Dialogue
 {
     bool relativeIndex = true;
     std::string text;
-    SelectOption *selectOption = nullptr; // Optional field as a pointer
-    Texture2D *reaction = nullptr;        // Optional field as a pointer
+    SelectOption *selectOption; // Optional field as a pointer
+    Texture2D *reaction;        // Optional field as a pointer
 
     // Constructor with an optional SelectOption
-    Dialogue(std::string text, SelectOption *selectOption = nullptr)
-        : text(text), selectOption(selectOption) {}
+    Dialogue(std::string text)
+        : text(text)
+    {
+        reaction = nullptr;
+        selectOption = nullptr;
+    }
 
     Dialogue(std::string text, Texture2D *reaction, SelectOption *selectOption = nullptr)
+        : text(text), reaction(reaction), selectOption(selectOption) {}
+
+    Dialogue(std::string text, SelectOption *selectOption, Texture2D *reaction = nullptr)
         : text(text), reaction(reaction), selectOption(selectOption) {}
 
     // Returned value is the index change for the current conversation
@@ -308,80 +317,6 @@ struct Exit : Rectangle
     Exit(float x, float y, float w, float h) : Rectangle{x, y, w, h} {};
 };
 
-namespace area
-{
-    std::string name;
-    Texture2D background;
-    std::string musicID, ambienceID, oldMusicID, oldAmbienceID;
-    float volume; // Used to incrementally increase old/new music and ambience volumes
-    std::vector<Object> objects;
-    std::vector<Exit> exits;
-
-    std::map<std::string, std::function<void()>> selector;
-
-    void initializeAreaContents()
-    {
-
-        selector["plains"] = []()
-        {
-            switch (gamePhase)
-            {
-            case 1:
-                objects.push_back(Object("resources/ninja.png", 20, 20, 20, 20));
-                break;
-            }
-        };
-        selector["city"] = []() {
-        };
-    }
-
-    void change(std::string areaName, Vector2 pos)
-    {
-
-        // Unload pre-existing textures and audio
-        if (background.id)
-            UnloadTexture(background);
-        for (size_t i = 0; i < objects.size(); i++)
-        {
-            UnloadTexture(objects[i].texture);
-        }
-        objects.clear();
-
-        // Move player to given position and align camera accordingly
-        // activePlayer->pos = pos;
-        // activePlayer->alignCamera();
-
-        // Updates to given area name and loads content through selector
-        name = areaName;
-        background = LoadTexture(("resources/" + name + ".png").c_str());
-        selector[areaName]();
-    }
-
-    // Make function checkInteractions that checks for exits, interactions etc.
-
-    void draw()
-    {
-        DrawTexture(background, 0, 0, WHITE);
-        for (size_t i = 0; i < objects.size(); i++)
-        {
-            objects[i].draw();
-        }
-    }
-}
-
-FocusableEntity *activeEntity;
-
-void changeActiveEntity(FocusableEntity *newEntity)
-{
-    FocusableEntity old_entity = *activeEntity;
-    activeEntity = newEntity;
-    activeEntity->camera.target = old_entity.camera.target;
-    targetZoom = activeEntity->zoom;
-    activeEntity->camera.zoom = old_entity.camera.zoom;
-}
-
-Color *colors;
-
 struct Player : FocusableEntity
 {
     std::string name;
@@ -395,15 +330,16 @@ struct Player : FocusableEntity
 
     Player(std::string name) : name(name)
     {
-        idle = LoadTexture(("resources/" + name + "/" + name + ".png").c_str());
-        runRight = LoadTexture(("resources/" + name + "/Run/Right.png").c_str());
-        runLeft = LoadTexture(("resources/" + name + "/Run/Left.png").c_str());
-        runUp = LoadTexture(("resources/" + name + "/Run/Up.png").c_str());
-        runDown = LoadTexture(("resources/" + name + "/Run/Down.png").c_str());
+        idle = LoadTexture(("resources/players/" + name + "/" + name + ".png").c_str());
+        runRight = LoadTexture(("resources/players/" + name + "/Run/Right.png").c_str());
+        runLeft = LoadTexture(("resources/players/" + name + "/Run/Left.png").c_str());
+        runUp = LoadTexture(("resources/players/" + name + "/Run/Up.png").c_str());
+        runDown = LoadTexture(("resources/players/" + name + "/Run/Down.png").c_str());
     }
 
     void updateMovement()
     {
+        checkIfPlayerCanMove();
         if (playerCanMove)
         {
             // When left right up is pressed, controls don't work properly!
@@ -472,28 +408,7 @@ struct Player : FocusableEntity
         return (Rectangle){pos.x + 16, pos.y + 32, 16, 16};
     }
 
-    bool overlapsWithCollision()
-    {
-        Rectangle collisionBox = getCollisionBox();
-
-        if (collisionBox.x <= 0 || collisionBox.y <= 0 ||
-            collisionBox.x + collisionBox.width > area::background.width ||
-            collisionBox.y + collisionBox.height > area::background.height)
-        {
-            return true;
-        }
-
-        for (int yVal = collisionBox.y; yVal < collisionBox.y + collisionBox.height; yVal++)
-        {
-            for (int xVal = collisionBox.width; xVal < collisionBox.x + collisionBox.width; xVal++)
-            {
-                int index = yVal * area::background.width + xVal;
-                if (colors[index].a > 100)
-                    return true;
-            }
-        }
-        return false;
-    }
+    bool overlapsWithCollision();
 
     void draw()
     {
@@ -541,4 +456,122 @@ struct Player : FocusableEntity
     }
 };
 
-Player *activePlayer;
+struct Area
+{
+    std::string name;
+    Texture2D background, foreground;
+    Image collisionImage;
+    Color *collision;
+    std::string musicID, ambienceID, oldMusicID, oldAmbienceID;
+    float volume; // Used to incrementally increase old/new music and ambience volumes
+    std::vector<Object> objects;
+    std::vector<Exit> exits;
+
+    void draw()
+    {
+        DrawTexture(background, 0, 0, WHITE);
+        DrawTexture(foreground, 0, 0, WHITE);
+        for (size_t i = 0; i < objects.size(); i++)
+        {
+            objects[i].draw();
+        }
+    }
+};
+
+Area loadArea(std::string areaName, Vector2 pos = {0, 0})
+{
+    Area newArea;
+
+    using json = nlohmann::json;
+    json areaData;
+
+    // Open the JSON file using std::ifstream
+    std::ifstream inputFile("resources/areas/" + areaName + "/areaData.json");
+
+    // Check if the file is open
+    if (!inputFile.is_open())
+    {
+        std::cerr << "Failed to open JSON file." << std::endl;
+    }
+
+    // Parse the JSON data
+    try
+    {
+        inputFile >> areaData;
+    }
+    catch (const json::parse_error &e)
+    {
+        std::cerr << "JSON parse error: " << e.what() << std::endl;
+    }
+
+    // Close the file
+    inputFile.close();
+
+    newArea.name = areaName;
+    newArea.background = LoadTexture(("resources/areas/" + areaName + "/background.png").c_str());
+    newArea.foreground = LoadTexture(("resources/areas/" + areaName + "/foreground.png").c_str());
+    newArea.collisionImage = LoadImage(("resources/areas/" + areaName + "/collision.png").c_str());
+    newArea.collision = LoadImageColors(newArea.collisionImage);
+
+    return newArea;
+}
+
+namespace active
+{
+    Player *player;
+    Interaction *interaction;
+    Area area;
+    FocusableEntity *entity;
+
+    void changeEntity(FocusableEntity *newEntity)
+    {
+        FocusableEntity old_entity = *active::entity;
+        active::entity = newEntity;
+        active::entity->camera.target = old_entity.camera.target;
+        targetZoom = active::entity->zoom;
+        active::entity->camera.zoom = old_entity.camera.zoom;
+    }
+
+    void changeArea(std::string areaName, Vector2 pos)
+    {
+
+        // Unload pre-existing textures and audio
+        UnloadTexture(active::area.background);
+        UnloadTexture(active::area.foreground);
+        UnloadImage(active::area.collisionImage);
+        UnloadImageColors(active::area.collision);
+        for (size_t i = 0; i < active::area.objects.size(); i++)
+        {
+            UnloadTexture(active::area.objects[i].texture);
+        }
+
+        // Move player to given position and align camera accordingly
+        active::player->pos = pos;
+        active::player->alignCamera();
+
+        active::area = loadArea(areaName, pos);
+    }
+}
+
+bool Player::overlapsWithCollision()
+{
+    Rectangle collisionBox = Player::getCollisionBox();
+
+    if (collisionBox.x <= 0 || collisionBox.y <= 0 ||
+        collisionBox.x + collisionBox.width > active::area.background.width ||
+        collisionBox.y + collisionBox.height > active::area.background.height)
+    {
+        return true;
+    }
+
+    for (int yVal = collisionBox.y; yVal < collisionBox.y + collisionBox.height; yVal++)
+    {
+        for (int xVal = collisionBox.width; xVal < collisionBox.x + collisionBox.width; xVal++)
+        {
+            int index = yVal * active::area.background.width + xVal;
+            if (active::area.collision[index].a > 100)
+                return true;
+        }
+    }
+    return false;
+}
