@@ -1,91 +1,67 @@
-#include "raylib.h"
-#include <iostream>
-#include <vector>
+#pragma once
+#include "types.hpp"
 
 using std::cout;
 using std::cin;
 using std::endl;
 
 // Global Constants
-const int SCALEFACTOR = 3;
-const int PLAYERWIDTH = 48;
-const int PLAYERHEIGHT = 48;
-const float ACCELERATION = 0.7;
-const float MAX_SPEED = 2.5;
-const float FRICTION = 0.6;
-const float MOVEMENT_CUTOFF = 0.1;
-const int END_CONVERSATION = 100000;
-int gamePhase = 1;
-const Color NIGHT = {0,20,40,150};
-const Color DAY = {155,155,0,30};
+extern const int SCALEFACTOR;
+extern const int PLAYERWIDTH;
+extern const int PLAYERHEIGHT;
+extern const float ACCELERATION;
+extern const float MAX_SPEED;
+extern const float FRICTION;
+extern const float MOVEMENT_CUTOFF;
+extern const int END_CONVERSATION;
+extern int gamePhase;
+extern const Color NIGHT;
+extern const Color DAY;
 
 // Global Variables
-int windowWidth = 1400;
-int windowHeight = 800;
-float targetZoom = SCALEFACTOR;
-Camera2D fixedCamera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
-bool settingsActive = false;
-bool isInteracting = false;
-bool playerCanMove = true;
-std::vector<bool*> flags = {&settingsActive, &isInteracting};
+extern int windowWidth;
+extern int windowHeight;
+extern float targetZoom;
+extern Camera2D fixedCamera;
+extern bool settingsActive;
+extern bool isInteracting;
+extern bool playerCanMove;
+extern std::vector<bool*> flags;
 
 // Global helper functions
-void checkIfPlayerCanMove() {
-    for (bool* menu: flags)
-    {
-        if(*menu) {
-            playerCanMove = false;
-            return;
-        }
-    }
-    playerCanMove = true;
-}
+void checkIfPlayerCanMove();
 
-int GetScaledScreenWidth()
-{
-    return GetScreenWidth() / SCALEFACTOR;
-}
+int GetScaledScreenWidth();
 
-int GetScaledScreenHeight()
-{
-    return GetScreenHeight() / SCALEFACTOR;
-}
+int GetScaledScreenHeight();
 
 
-Vector2 GetMousePosition(Camera2D camera)
-{
-    Vector2 mouseCoords = GetMousePosition();
-    mouseCoords.x += camera.target.x * camera.zoom;
-    mouseCoords.y += camera.target.y * camera.zoom;
-    mouseCoords.x -= camera.offset.x;
-    mouseCoords.y -= camera.offset.y;
-    mouseCoords.x /= camera.zoom;
-    mouseCoords.y /= camera.zoom;
+Vector2 GetMousePosition(Camera2D camera);
 
-    return mouseCoords;
-}
-
-Vector2 GetMouseFixedPosition()
-{
-    Vector2 mouseCoords = GetMousePosition();
-    mouseCoords.x /= fixedCamera.zoom;
-    mouseCoords.y /= fixedCamera.zoom;
-
-    return mouseCoords;
-}
+Vector2 GetMouseFixedPosition();
 
 
 // Global textures
 namespace Xyno {
     namespace reaction {
-        Texture2D happy;
+        extern Texture2D happy;
     }
 
-    void init() {
-        reaction::happy = LoadTexture("resources/happy.png");
-    }
+    void init();
 }
 
-void initGlobals() {
-    Xyno::init();
+void initGlobals();
+
+Area loadArea(std::string areaName, Vector2 pos = {0, 0});
+
+namespace active
+{
+    extern Player *player;
+    extern Interaction *interaction;
+    extern Area area;
+    extern FocusableEntity *entity;
+
+    void changeEntity(FocusableEntity *newEntity);
+
+    void changeArea(std::string areaName, Vector2 pos);
 }

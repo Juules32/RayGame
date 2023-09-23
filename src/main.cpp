@@ -6,6 +6,7 @@
 #include <cmath>
 #include <limits>
 #include "types.hpp"
+#include "globals.hpp"
 
 
 
@@ -29,7 +30,7 @@ int main(void)
     TextButton testButton(10,10,50,50,"Hello!");
     FocusableEntity testEntity;
     testEntity.zoom = 1;
-    Player player = Player("Xyno");
+    Player player = Player("xyno");
     active::player = &player;
     active::entity = active::player;
     active::area = loadArea("plains");
@@ -128,6 +129,9 @@ int main(void)
         ClearBackground(RAYWHITE);
         BeginMode2D(active::entity->camera);
         active::area.draw();
+
+        Rectangle rect = active::player->getCollisionBox();
+        DrawRectangle(rect.x, rect.y, rect.width, rect.height, GREEN);
         active::player->draw();
         EndMode2D();
 
