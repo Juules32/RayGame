@@ -1,17 +1,8 @@
 
-#include "raylib.h"
-#include <iostream>
-#include <memory>
-#include <vector>
-#include <cmath>
 #include <limits>
 #include "types.hpp"
-#include "globals.hpp"
-
-
-
-
-
+#include "state.hpp"
+#include "utils.hpp"
 
 int main(void)
 {
@@ -35,8 +26,6 @@ int main(void)
     active::entity = active::player;
     active::area = loadArea("plains");
     player.zoom = SCALEFACTOR;
-    player.width = PLAYERWIDTH;
-    player.height = PLAYERHEIGHT;
     player.alignCamera();
     
 
@@ -148,7 +137,7 @@ int main(void)
         if(settingsActive) {
             BeginMode2D(fixedCamera);
             DrawText("hej", 60, 20, 10, RED);
-            DrawRectangle(windowWidth / 2 / SCALEFACTOR, windowHeight / 2 / SCALEFACTOR, PLAYERWIDTH, PLAYERHEIGHT, ORANGE);
+            DrawRectangle(windowWidth / 2 / SCALEFACTOR, windowHeight / 2 / SCALEFACTOR, player.width, player.height, ORANGE);
             testButton.draw();
             EndMode2D();
         }

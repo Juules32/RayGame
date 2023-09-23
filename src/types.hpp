@@ -1,17 +1,10 @@
 #pragma once
-#include "raylib.h"
-#include "string"
-#include <iostream>
-#include <cmath>
-#include <memory>
+#include "globals.hpp"
+#include <string>
 #include <vector>
-#include <map>
-#include <fstream>
-#include "../libs/json.hpp"
+#include <memory>
 
-extern const int SCALEFACTOR;
 extern const int END_CONVERSATION;
-
 
 struct FocusableEntity
 {

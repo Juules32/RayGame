@@ -1,9 +1,15 @@
 #include "types.hpp"
-#include "globals.hpp"
+#include "state.hpp"
+#include <iostream>
+#include <map>
+#include <cmath>
+#include "utils.hpp"
 
-// Implementation
-
-
+const float ACCELERATION = 0.7;
+const float MAX_SPEED = 2.5;
+const float FRICTION = 0.6;
+const float MOVEMENT_CUTOFF = 0.1;
+const int END_CONVERSATION = 100000;
 
 void FocusableEntity::updateCamera()
 {
@@ -11,7 +17,7 @@ void FocusableEntity::updateCamera()
     camera.offset.y = windowHeight / 2;
     camera.target.x -= (camera.target.x - (pos.x + width / 2)) * 0.15;
     camera.target.y -= (camera.target.y - (pos.y + height / 2)) * 0.15;
-    camera.zoom += (targetZoom - camera.zoom) * 0.15;
+    camera.zoom += (active::targetZoom - camera.zoom) * 0.15;
 
     if (shakeTime)
     {
@@ -246,6 +252,8 @@ Player::Player(std::string name) : name(name)
     runLeft = LoadTexture(("resources/players/" + name + "/Run/Left.png").c_str());
     runUp = LoadTexture(("resources/players/" + name + "/Run/Up.png").c_str());
     runDown = LoadTexture(("resources/players/" + name + "/Run/Down.png").c_str());
+    width = idle.width;
+    height = idle.height;
 }
 
 bool Player::overlapsWithCollision()
