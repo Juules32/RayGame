@@ -25,3 +25,21 @@ void initGlobals()
     Xyno::init();
 }
 
+bool settingsActive = false;
+bool isInteracting = false;
+bool playerCanMove = true;
+std::vector<bool *> flags = {&settingsActive, &isInteracting};
+
+// Global helper functions
+void checkIfPlayerCanMove()
+{
+    for (bool *menu : flags)
+    {
+        if (*menu)
+        {
+            playerCanMove = false;
+            return;
+        }
+    }
+    playerCanMove = true;
+}

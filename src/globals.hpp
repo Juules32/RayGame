@@ -30,3 +30,10 @@ namespace Xyno {
 
 void initGlobals();
 
+extern bool settingsActive;
+extern bool isInteracting;
+extern bool playerCanMove;
+extern std::vector<bool*> flags;
+
+// Global helper functions
+void checkIfPlayerCanMove();

@@ -6,20 +6,17 @@
 
 extern const int END_CONVERSATION;
 
-struct FocusableEntity
+struct FocusableEntity : Rectangle
 {
 
 private:
     float shakeTime = 0;
 
 public:
-    Vector2 pos = {0, 0};
     Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, (float) SCALEFACTOR};
     int zoom = 1;
-    int width = 0;
-    int height = 0;
 
-    void updateCamera();
+    void updateCamera(float targetZoom);
 
     void alignCamera();
 
@@ -47,24 +44,23 @@ struct TextButton : Button
 struct Option : Button
 {
     std::string text;
-    int position;
     int toIndex;
 
     Option(std::string text, int toIndex = 1);
 };
 
-struct SelectOption
+struct OptionContainer
 {
+    static const int TEXTSIZE = 10;
+    static const int DISTFROMBOTTOM = 100;
+    static const int DISTFROMRIGHT = 10;
+    static const int OPTIONHEIGHT = 30;
     int toIndex = 1;
-    const int TEXTSIZE = 10;
-    const int DISTFROMBOTTOM = 100;
-    const int DISTFROMRIGHT = 10;
-    const int OPTIONHEIGHT = 30;
     int OPTIONWIDTH = 50;
     std::vector<Option> options;
     unsigned int selectedOptionIndex = 0;
 
-    SelectOption(std::vector<Option> o);
+    OptionContainer(std::vector<Option> o);
 
     int start();
 };
@@ -73,15 +69,15 @@ struct Dialogue
 {
     bool relativeIndex = true;
     std::string text;
-    SelectOption *selectOption; // Optional field as a pointer
+    OptionContainer *optionContainer; // Optional field as a pointer
     Texture2D *reaction;        // Optional field as a pointer
 
-    // Constructor with an optional SelectOption
+    // Constructor with an optional OptionContainer
     Dialogue(std::string text);
 
-    Dialogue(std::string text, Texture2D *reaction, SelectOption *selectOption = nullptr);
+    Dialogue(std::string text, Texture2D *reaction, OptionContainer *optionContainer = nullptr);
 
-    Dialogue(std::string text, SelectOption *selectOption, Texture2D *reaction = nullptr);
+    Dialogue(std::string text, OptionContainer *optionContainer, Texture2D *reaction = nullptr);
 
     // Returned value is the index change for the current conversation
     // 0 means staying in the same dialoguewq
@@ -99,7 +95,7 @@ struct Interaction
 
     std::vector<std::unique_ptr<Dialogue>> IEs = {};
     std::vector<Option> options = {Option("Yes"), Option("No", END_CONVERSATION), Option("Let's start over", -1)};
-    std::unique_ptr<SelectOption> selectOption = std::make_unique<SelectOption>(options);
+    std::unique_ptr<OptionContainer> optionContainer = std::make_unique<OptionContainer>(options);
 
     Interaction();
 
@@ -117,27 +113,10 @@ struct Object : FocusableEntity
 
 struct Exit : Rectangle
 {
-    Exit(float x, float y, float w, float h);
-};
+    Vector2 toPos;
+    std::string toAreaName;
 
-struct Player : FocusableEntity
-{
-    std::string name;
-    Vector2 v = {0, 0};
-    int frameIncrementer = 0;
-    int frameTime = 5; // In frames
-    int frameCount = 0;
-    int frameWidth = 48;
-
-    Texture2D idle, runRight, runLeft, runUp, runDown;
-
-    Player(std::string name);
-
-    void updateMovement();
-
-    Rectangle getCollisionBox();
-
-    bool overlapsWithCollision();
+    Exit(float x, float y, float w, float h, Vector2 toPos, std::string toAreaName);
 
     void draw();
 };
@@ -155,4 +134,29 @@ struct Area
 
     void draw();
 };
+
+
+struct Player : FocusableEntity
+{
+    std::string name;
+    Vector2 v = {0, 0};
+    int frameIncrementer = 0;
+    int frameTime = 5; // In frames
+    int frameCount = 0;
+    int frameWidth = 48;
+
+    Texture2D idle, runRight, runLeft, runUp, runDown;
+
+    Player(std::string name);
+
+    void updateMovement(Area* activeArea);
+
+    Rectangle getCollisionBox();
+
+    bool overlapsWithCollision(Area* activeArea);
+    Exit* overlapsWithExit(Area* activeArea);
+
+    void draw();
+};
+
 

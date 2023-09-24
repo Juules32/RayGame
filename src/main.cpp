@@ -107,10 +107,15 @@ int main(void)
         }
 
         // Update movement of active player
-        active::player->updateMovement();
+        active::player->updateMovement(&active::area);
 
         // Update camera position to player position
-        active::entity->updateCamera();
+        active::entity->updateCamera(active::targetZoom);
+
+        Exit* overlappingExit = active::player->overlapsWithExit(&active::area);
+        if(overlappingExit != nullptr) {
+            active::changeArea(overlappingExit->toAreaName, overlappingExit->toPos);
+        }
         
         // Rendering
         BeginDrawing();
@@ -159,6 +164,7 @@ int main(void)
         EndDrawing();
     }
 
+    unloadArea(active::area);
     CloseWindow();
     return 0;
 }

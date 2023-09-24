@@ -17,8 +17,9 @@
     ],
     "exits": [
         {
-            "toArea": "city",
             "xywh": [20, 20, 50, 20],
+            "toAreaName": "plains",
+            "toPos": [200, 50],
             "requirement": "talkToXeno",
             "requirements": ["onlyPhase1", "have500iq"]
         }

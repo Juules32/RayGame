@@ -9,6 +9,7 @@ struct Area;
 struct FocusableEntity;
 
 Area loadArea(std::string areaName, Vector2 pos = {0, 0});
+void unloadArea(Area area);
 
 namespace active
 {
@@ -25,10 +26,3 @@ namespace active
     void changeArea(std::string areaName, Vector2 pos);
 }
 
-extern bool settingsActive;
-extern bool isInteracting;
-extern bool playerCanMove;
-extern std::vector<bool*> flags;
-
-// Global helper functions
-void checkIfPlayerCanMove();

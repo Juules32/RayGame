@@ -1,5 +1,4 @@
 #include "types.hpp"
-#include "state.hpp"
 #include <iostream>
 #include <map>
 #include <cmath>
@@ -11,13 +10,13 @@ const float FRICTION = 0.6;
 const float MOVEMENT_CUTOFF = 0.1;
 const int END_CONVERSATION = 100000;
 
-void FocusableEntity::updateCamera()
+void FocusableEntity::updateCamera(float targetZoom)
 {
     camera.offset.x = windowWidth / 2;
     camera.offset.y = windowHeight / 2;
-    camera.target.x -= (camera.target.x - (pos.x + width / 2)) * 0.15;
-    camera.target.y -= (camera.target.y - (pos.y + height / 2)) * 0.15;
-    camera.zoom += (active::targetZoom - camera.zoom) * 0.15;
+    camera.target.x -= (camera.target.x - (x + width / 2)) * 0.15;
+    camera.target.y -= (camera.target.y - (y + height / 2)) * 0.15;
+    camera.zoom += (targetZoom - camera.zoom) * 0.15;
 
     if (shakeTime)
     {
@@ -31,8 +30,8 @@ void FocusableEntity::alignCamera()
 {
     camera.offset.x = windowWidth / 2;
     camera.offset.y = windowHeight / 2;
-    camera.target.x = pos.x + width / 2;
-    camera.target.y = pos.y + height / 2;
+    camera.target.x = x + width / 2;
+    camera.target.y = y + height / 2;
 }
 
 void FocusableEntity::startShake()
@@ -75,7 +74,7 @@ void TextButton::outputText()
 
 Option::Option(std::string text, int toIndex) : text(text), toIndex(toIndex){};
 
-SelectOption::SelectOption(std::vector<Option> o) : options(o)
+OptionContainer::OptionContainer(std::vector<Option> o) : options(o)
 {
     // Set optionwidth according to longest text of dialogue option
     for (unsigned int i = 0; i < options.size(); i++)
@@ -90,11 +89,10 @@ SelectOption::SelectOption(std::vector<Option> o) : options(o)
     {
         options[options.size() - 1 - i].width = OPTIONWIDTH;
         options[options.size() - 1 - i].height = OPTIONHEIGHT;
-        options[i].position = i;
     }
 };
 
-int SelectOption::start()
+int OptionContainer::start()
 {
     // Updates option position, in case window is resized
     for (unsigned int i = 0; i < options.size(); i++)
@@ -122,7 +120,7 @@ int SelectOption::start()
     {
         if (options[i].isHovered())
         {
-            selectedOptionIndex = options[i].position;
+            selectedOptionIndex = i;
             break;
         }
     }
@@ -150,19 +148,19 @@ int SelectOption::start()
     return 0;
 } 
 
-// Constructor with an optional SelectOption
+// Constructor with an optional OptionContainer
 Dialogue::Dialogue(std::string text)
     : text(text)
 {
     reaction = nullptr;
-    selectOption = nullptr;
+    optionContainer = nullptr;
 }
 
-Dialogue::Dialogue(std::string text, Texture2D *reaction, SelectOption *selectOption)
-    : text(text), selectOption(selectOption), reaction(reaction) {}
+Dialogue::Dialogue(std::string text, Texture2D *reaction, OptionContainer *optionContainer)
+    : text(text), optionContainer(optionContainer), reaction(reaction) {}
 
-Dialogue::Dialogue(std::string text, SelectOption *selectOption, Texture2D *reaction)
-    : text(text), selectOption(selectOption), reaction(reaction) {}
+Dialogue::Dialogue(std::string text, OptionContainer *optionContainer, Texture2D *reaction)
+    : text(text), optionContainer(optionContainer), reaction(reaction) {}
 
 // Returned value is the index change for the current conversation
 // 0 means staying in the same dialoguewq
@@ -176,9 +174,9 @@ int Dialogue::start()
     DrawText(text.c_str(), 150, 50, 10, PURPLE);
     EndMode2D();
 
-    if (selectOption != nullptr)
+    if (optionContainer != nullptr)
     {
-        return selectOption->start();
+        return optionContainer->start();
     }
     else if (IsKeyPressed(KEY_ENTER) || IsMouseButtonPressed(MOUSE_LEFT_BUTTON))
     {
@@ -189,9 +187,9 @@ int Dialogue::start()
 
 void Dialogue::reset()
 {
-    if (selectOption != nullptr)
+    if (optionContainer != nullptr)
     {
-        selectOption->selectedOptionIndex = 0;
+        optionContainer->selectedOptionIndex = 0;
     }
 }
 
@@ -199,7 +197,7 @@ Interaction::Interaction()
 {
 
     IEs.push_back(std::make_unique<Dialogue>("Hello", &Xyno::reaction::happy));
-    IEs.push_back(std::make_unique<Dialogue>("Do you want to talk more?", selectOption.get()));
+    IEs.push_back(std::make_unique<Dialogue>("Do you want to talk more?", optionContainer.get()));
     IEs.push_back(std::make_unique<Dialogue>("Cool, me too"));
 }
 
@@ -229,21 +227,25 @@ int Interaction::iterate()
     return 1;
 }
 
-Object::Object(std::string texturePath, int x, int y, int w, int h)
+Object::Object(std::string texturePath, int xVal, int yVal, int w, int h)
 {
     texture = LoadTexture(texturePath.c_str());
-    pos.x = x;
-    pos.y = y;
+    x = xVal;
+    y = yVal;
     width = w;
     height = h;
 }
 
 void Object::draw()
 {
-    DrawTexture(texture, pos.x, pos.y, WHITE);
+    DrawTexture(texture, x, y, WHITE);
 }
 
-Exit::Exit(float x, float y, float w, float h) : Rectangle{x, y, w, h} {};
+Exit::Exit(float x, float y, float w, float h, Vector2 toPos, std::string toAreaName) : Rectangle{x, y, w, h}, toPos(toPos), toAreaName(toAreaName) {};
+
+void Exit::draw() {
+    DrawRectangle(x, y, width, height, PURPLE);
+}
 
 Player::Player(std::string name) : name(name)
 {
@@ -256,13 +258,13 @@ Player::Player(std::string name) : name(name)
     height = idle.height;
 }
 
-bool Player::overlapsWithCollision()
+bool Player::overlapsWithCollision(Area* activeArea)
 {
     Rectangle collisionBox = Player::getCollisionBox();
 
     if (collisionBox.x <= 0 || collisionBox.y <= 0 ||
-        collisionBox.x + collisionBox.width > active::area.background.width ||
-        collisionBox.y + collisionBox.height > active::area.background.height)
+        collisionBox.x + collisionBox.width > activeArea->background.width ||
+        collisionBox.y + collisionBox.height > activeArea->background.height)
     {
         return true;
     }
@@ -271,12 +273,26 @@ bool Player::overlapsWithCollision()
     {
         for (int xVal = collisionBox.x; xVal < collisionBox.x + collisionBox.width; xVal++)
         {
-            int index = yVal * active::area.background.width + xVal;
-            if (active::area.collision[index].a > 100)
+            int index = yVal * activeArea->background.width + xVal;
+            if (activeArea->collision[index].a > 100)
                 return true;
         }
     }
     return false;
+
+}
+
+Exit* Player::overlapsWithExit(Area* activeArea) {
+    Rectangle collisionBox = Player::getCollisionBox();
+
+    for(auto& exit : activeArea->exits) {
+        Rectangle collisionRect = GetCollisionRec(collisionBox, exit);
+        if(collisionRect.width && collisionRect.height) {
+            return &exit;
+        }
+    }
+
+    return nullptr;
 }
 
 void Player::draw()
@@ -291,7 +307,7 @@ void Player::draw()
     }
     if (absX == 0 && absY == 0)
     {
-        DrawTexture(idle, pos.x, pos.y, WHITE);
+        DrawTexture(idle, x, y, WHITE);
         frameIncrementer = 0;
         return;
     }
@@ -302,22 +318,22 @@ void Player::draw()
     {
         if (v.x >= 0)
         {
-            DrawTextureRec(runRight, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, pos, WHITE);
+            DrawTextureRec(runRight, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
         else
         {
-            DrawTextureRec(runLeft, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, pos, WHITE);
+            DrawTextureRec(runLeft, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
     }
     else
     {
         if (v.y >= 0)
         {
-            DrawTextureRec(runDown, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, pos, WHITE);
+            DrawTextureRec(runDown, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
         else
         {
-            DrawTextureRec(runUp, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, pos, WHITE);
+            DrawTextureRec(runUp, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
     }
 
@@ -326,10 +342,10 @@ void Player::draw()
 
 Rectangle Player::getCollisionBox()
 {
-    return (Rectangle){pos.x + 16, pos.y + 32, 16, 16};
+    return (Rectangle){x + 16, y + 32, 16, 16};
 }
 
-void Player::updateMovement()
+void Player::updateMovement(Area* activeArea)
 {
     checkIfPlayerCanMove();
     if (playerCanMove)
@@ -375,18 +391,19 @@ void Player::updateMovement()
     if (v.y < -MAX_SPEED)
         v.y = -MAX_SPEED;
 
-    Vector2 posCopy = pos;
+    float xCopy = x;
+    float yCopy = y;
 
-    pos.x += v.x;
-    if (overlapsWithCollision())
+    x += v.x;
+    if (overlapsWithCollision(activeArea))
     {
-        pos.x = posCopy.x;
+        x = xCopy;
     }
 
-    pos.y += v.y;
-    if (overlapsWithCollision())
+    y += v.y;
+    if (overlapsWithCollision(activeArea))
     {
-        pos.y = posCopy.y;
+        y = yCopy;
     }
 
     if (std::fabs(v.x) < MOVEMENT_CUTOFF)
@@ -402,5 +419,9 @@ void Area::draw()
     for (size_t i = 0; i < objects.size(); i++)
     {
         objects[i].draw();
+    }
+    for (size_t i = 0; i < exits.size(); i++)
+    {
+        exits[i].draw();
     }
 }

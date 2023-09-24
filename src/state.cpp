@@ -39,7 +39,28 @@ Area loadArea(std::string areaName, Vector2 pos)
     newArea.collisionImage = LoadImage(("resources/areas/" + areaName + "/collision.png").c_str());
     newArea.collision = LoadImageColors(newArea.collisionImage);
 
+    if (areaData.contains("exits") && areaData["exits"].is_array())
+    {
+        for (const auto &exit : areaData["exits"])
+        {
+            newArea.exits.push_back(Exit(exit["xywh"][0], exit["xywh"][1], exit["xywh"][2], exit["xywh"][3],
+                                         (Vector2){exit["toPos"][0], exit["toPos"][1]}, exit["toAreaName"]));
+        }
+    }
+
     return newArea;
+}
+
+void unloadArea(Area area)
+{
+    UnloadTexture(active::area.background);
+    UnloadTexture(active::area.foreground);
+    UnloadImage(active::area.collisionImage);
+    UnloadImageColors(active::area.collision);
+    for (size_t i = 0; i < active::area.objects.size(); i++)
+    {
+        UnloadTexture(active::area.objects[i].texture);
+    }
 }
 
 Player *active::player;
@@ -49,7 +70,6 @@ FocusableEntity *active::entity;
 float active::targetZoom = SCALEFACTOR;
 
 int active::gamePhase = 1;
-
 
 void active::changeEntity(FocusableEntity *newEntity)
 {
@@ -64,37 +84,12 @@ void active::changeArea(std::string areaName, Vector2 pos)
 {
 
     // Unload pre-existing textures and audio
-    UnloadTexture(active::area.background);
-    UnloadTexture(active::area.foreground);
-    UnloadImage(active::area.collisionImage);
-    UnloadImageColors(active::area.collision);
-    for (size_t i = 0; i < active::area.objects.size(); i++)
-    {
-        UnloadTexture(active::area.objects[i].texture);
-    }
+    unloadArea(active::area);
 
     // Move player to given position and align camera accordingly
-    active::player->pos = pos;
+    active::player->x = pos.x;
+    active::player->y = pos.y;
     active::player->alignCamera();
 
     active::area = loadArea(areaName, pos);
-}
-
-bool settingsActive = false;
-bool isInteracting = false;
-bool playerCanMove = true;
-std::vector<bool *> flags = {&settingsActive, &isInteracting};
-
-// Global helper functions
-void checkIfPlayerCanMove()
-{
-    for (bool *menu : flags)
-    {
-        if (*menu)
-        {
-            playerCanMove = false;
-            return;
-        }
-    }
-    playerCanMove = true;
 }
