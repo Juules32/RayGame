@@ -17,7 +17,7 @@ Texture2D Xyno::reaction::happy;
 
 void Xyno::init()
 {
-    Xyno::reaction::happy = LoadTexture("resources/happy.png");
+    Xyno::reaction::happy = LoadTexture("resources/reactions/dealer/happy.png");
 }
 
 void initGlobals()

@@ -3,20 +3,27 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <optional>
 
 extern const int END_CONVERSATION;
 
-struct FocusableEntity : Rectangle
+struct FocusableEntity
 {
 
 private:
     float shakeTime = 0;
 
 public:
-    Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, (float) SCALEFACTOR};
-    int zoom = 1;
+    float x = 0;
+    float y = 0;
+    float width = 0;
+    float height = 0;
 
-    void updateCamera(float targetZoom);
+
+    Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, (float) SCALEFACTOR};
+    int targetZoom = SCALEFACTOR;
+
+    void updateCamera();
 
     void alignCamera();
 
@@ -69,15 +76,15 @@ struct Dialogue
 {
     bool relativeIndex = true;
     std::string text;
-    OptionContainer *optionContainer; // Optional field as a pointer
-    Texture2D *reaction;        // Optional field as a pointer
+    std::optional<OptionContainer> optionContainer; // Optional field as a pointer
+    std::optional<Texture2D> reaction;        // Optional field as a pointer
 
     // Constructor with an optional OptionContainer
     Dialogue(std::string text);
 
-    Dialogue(std::string text, Texture2D *reaction, OptionContainer *optionContainer = nullptr);
+    Dialogue(std::string text, std::optional<Texture2D> reaction, std::optional<OptionContainer> optionContainer = std::nullopt);
 
-    Dialogue(std::string text, OptionContainer *optionContainer, Texture2D *reaction = nullptr);
+    Dialogue(std::string text, std::optional<OptionContainer> optionContainer, std::optional<Texture2D> reaction = std::nullopt);
 
     // Returned value is the index change for the current conversation
     // 0 means staying in the same dialoguewq
@@ -93,11 +100,10 @@ struct Interaction
     // Is necessary in case dialogue is shown twice in same interaction
     bool shouldReset = true;
 
-    std::vector<std::unique_ptr<Dialogue>> IEs = {};
-    std::vector<Option> options = {Option("Yes"), Option("No", END_CONVERSATION), Option("Let's start over", -1)};
-    std::unique_ptr<OptionContainer> optionContainer = std::make_unique<OptionContainer>(options);
-
-    Interaction();
+    std::vector<Dialogue> IEs;
+    std::vector<Option> options;
+    OptionContainer* optionContainer;
+    
 
     int iterate();
 };
@@ -105,8 +111,8 @@ struct Interaction
 struct Object : FocusableEntity
 {
     Texture2D texture;
-
-    Object(std::string texturePath, int x, int y, int w, int h);
+    Interaction interaction;
+    Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, (float) SCALEFACTOR};
 
     void draw();
 };

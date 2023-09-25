@@ -10,7 +10,7 @@ const float FRICTION = 0.6;
 const float MOVEMENT_CUTOFF = 0.1;
 const int END_CONVERSATION = 100000;
 
-void FocusableEntity::updateCamera(float targetZoom)
+void FocusableEntity::updateCamera()
 {
     camera.offset.x = windowWidth / 2;
     camera.offset.y = windowHeight / 2;
@@ -152,14 +152,14 @@ int OptionContainer::start()
 Dialogue::Dialogue(std::string text)
     : text(text)
 {
-    reaction = nullptr;
-    optionContainer = nullptr;
+    reaction = std::nullopt;
+    optionContainer = std::nullopt;
 }
 
-Dialogue::Dialogue(std::string text, Texture2D *reaction, OptionContainer *optionContainer)
+Dialogue::Dialogue(std::string text, std::optional<Texture2D> reaction, std::optional<OptionContainer> optionContainer)
     : text(text), optionContainer(optionContainer), reaction(reaction) {}
 
-Dialogue::Dialogue(std::string text, OptionContainer *optionContainer, Texture2D *reaction)
+Dialogue::Dialogue(std::string text, std::optional<OptionContainer> optionContainer, std::optional<Texture2D> reaction)
     : text(text), optionContainer(optionContainer), reaction(reaction) {}
 
 // Returned value is the index change for the current conversation
@@ -167,14 +167,14 @@ Dialogue::Dialogue(std::string text, OptionContainer *optionContainer, Texture2D
 int Dialogue::start()
 {
     BeginMode2D(fixedCamera);
-    if (reaction != nullptr)
+    if (reaction != std::nullopt)
     {
         DrawTexture(*reaction, 100, 50, WHITE);
     }
     DrawText(text.c_str(), 150, 50, 10, PURPLE);
     EndMode2D();
 
-    if (optionContainer != nullptr)
+    if (optionContainer != std::nullopt)
     {
         return optionContainer->start();
     }
@@ -187,18 +187,10 @@ int Dialogue::start()
 
 void Dialogue::reset()
 {
-    if (optionContainer != nullptr)
+    if (optionContainer != std::nullopt)
     {
         optionContainer->selectedOptionIndex = 0;
     }
-}
-
-Interaction::Interaction()
-{
-
-    IEs.push_back(std::make_unique<Dialogue>("Hello", &Xyno::reaction::happy));
-    IEs.push_back(std::make_unique<Dialogue>("Do you want to talk more?", optionContainer.get()));
-    IEs.push_back(std::make_unique<Dialogue>("Cool, me too"));
 }
 
 int Interaction::iterate()
@@ -211,13 +203,13 @@ int Interaction::iterate()
 
     if (shouldReset)
     {
-        IEs[currentDialogueIndex]->reset();
+        IEs[currentDialogueIndex].reset();
         shouldReset = false;
     }
-    int targetDialogue = IEs[currentDialogueIndex]->start();
+    int targetDialogue = IEs[currentDialogueIndex].start();
     if (targetDialogue)
     {
-        if (IEs[currentDialogueIndex]->relativeIndex)
+        if (IEs[currentDialogueIndex].relativeIndex)
             currentDialogueIndex += targetDialogue;
         else
             currentDialogueIndex = targetDialogue;
@@ -227,14 +219,7 @@ int Interaction::iterate()
     return 1;
 }
 
-Object::Object(std::string texturePath, int xVal, int yVal, int w, int h)
-{
-    texture = LoadTexture(texturePath.c_str());
-    x = xVal;
-    y = yVal;
-    width = w;
-    height = h;
-}
+
 
 void Object::draw()
 {

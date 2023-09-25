@@ -2,8 +2,8 @@ UNEXPLAINED MYSTERIES:
     - What determines font size in relation to camera zoom
 
 TODO'S:
-    - json area loading
-    - json object loading
+    - add interacting with keyboard and mouse controls
+    - objects collision
     - auto nudge hvis man lige knap kan slide langs en væg
     - bedre renderingstruktur (simpel main.cpp fil)
     - bedre kodestruktur

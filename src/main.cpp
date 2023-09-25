@@ -4,6 +4,10 @@
 #include "state.hpp"
 #include "utils.hpp"
 
+
+
+
+
 int main(void)
 {
     // Setup
@@ -20,12 +24,11 @@ int main(void)
 
     TextButton testButton(10,10,50,50,"Hello!");
     FocusableEntity testEntity;
-    testEntity.zoom = 1;
+    testEntity.targetZoom = 1;
     Player player = Player("xyno");
     active::player = &player;
     active::entity = active::player;
-    active::area = loadArea("plains");
-    player.zoom = SCALEFACTOR;
+    active::area = json::loadArea("plains");
     player.alignCamera();
     
 
@@ -79,7 +82,8 @@ int main(void)
         }
         if (IsKeyPressed(KEY_T))
         {
-            active::interaction = &testInteraction;
+            active::changeEntity(&active::area.objects[0]);
+            active::interaction = &active::area.objects[0].interaction;
             isInteracting = true;
         }
         if (IsKeyPressed(KEY_Y))
@@ -110,7 +114,7 @@ int main(void)
         active::player->updateMovement(&active::area);
 
         // Update camera position to player position
-        active::entity->updateCamera(active::targetZoom);
+        active::entity->updateCamera();
 
         Exit* overlappingExit = active::player->overlapsWithExit(&active::area);
         if(overlappingExit != nullptr) {
@@ -134,6 +138,7 @@ int main(void)
         if(isInteracting) {
             if(!active::interaction->iterate()) {
                 isInteracting = false;
+                active::changeEntity(active::player);
             }
         }
 

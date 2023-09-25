@@ -11,8 +11,6 @@
         "requirement": "have500gold"
     },
     "objects": [
-        "sheep",
-        "manWithCigarette",
         "dealer"
     ],
     "exits": [

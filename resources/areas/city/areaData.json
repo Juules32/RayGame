@@ -10,11 +10,6 @@
     "altAmbience": {
         "requirement": "have500gold"
     },
-    "objects": [
-        "sheep",
-        "manWithCigarette",
-        "dealer"
-    ],
     "exits": [
         {
             "xywh": [20, 20, 50, 20],
