@@ -1,18 +1,17 @@
 {
     "default": {
-        "xywh": [100, 100, 16, 16],
+        "xywh": [120, 100],
         "dialogue": [
             {
-                "text": "Hello. I would like to talk to your manager. Is he available?",
-                "options": [["alright"], ["no bueno", 10000]]
+                "text": "Hello, I'm goku from Fortnite!"
             },
             {
-                "text": "Alright where is he?",
+                "text": "What would you like to talk about?",
+                "options": [["Are you really from fortnite?"], ["I don't want to talk.", 10000]]
+            },
+            {
+                "text": "LMAO you fell for it!!!!!!",
                 "reaction": "dealer/happy"
-            },
-            {
-                "text": "Test",
-                "options": [["hello"], ["let's go back!", -2]]
             }
         ]
     }

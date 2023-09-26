@@ -1,5 +1,5 @@
 #include "utils.hpp"
-
+#include <cmath>
 
 int GetScaledScreenWidth()
 {
@@ -32,3 +32,5 @@ Vector2 GetMouseFixedPosition()
 
     return mouseCoords;
 }
+
+

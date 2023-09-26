@@ -111,7 +111,7 @@ struct Interaction
 struct Object : FocusableEntity
 {
     Texture2D texture;
-    Interaction interaction;
+    std::optional<Interaction> interaction = std::nullopt;
     Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, (float) SCALEFACTOR};
 
     void draw();
@@ -147,7 +147,7 @@ struct Player : FocusableEntity
     std::string name;
     Vector2 v = {0, 0};
     int frameIncrementer = 0;
-    int frameTime = 5; // In frames
+    int FRAMETIME = 5; // In frames
     int frameCount = 0;
     int frameWidth = 48;
 
@@ -164,5 +164,3 @@ struct Player : FocusableEntity
 
     void draw();
 };
-
-

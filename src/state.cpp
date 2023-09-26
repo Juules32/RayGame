@@ -34,14 +34,23 @@ Object json::loadObject(std::string objectName)
     inputFile.close();
 
     newObject.texture = LoadTexture(("resources/objects/" + objectName + "/" + objectName + ".png").c_str());
-    
+
     newObject.x = objectData["default"]["xywh"][0];
     newObject.y = objectData["default"]["xywh"][1];
-    newObject.width = objectData["default"]["xywh"][2];
-    newObject.height = objectData["default"]["xywh"][3];
+    if (objectData["default"]["xywh"].size() > 2)
+    {
+        newObject.width = objectData["default"]["xywh"][2];
+        newObject.height = objectData["default"]["xywh"][3];
+    }
+    else
+    {
+        newObject.width = newObject.texture.width;
+        newObject.height = newObject.texture.height;
+    }
 
     if (objectData["default"].contains("dialogue") && objectData["default"]["dialogue"].is_array())
     {
+        newObject.interaction = Interaction();
         for (const auto &dialogueElement : objectData["default"]["dialogue"])
         {
             std::string dialogueText = dialogueElement["text"];
@@ -71,7 +80,7 @@ Object json::loadObject(std::string objectName)
                 reaction = LoadTexture(("resources/reactions/" + reactionType + ".png").c_str());
             }
 
-            newObject.interaction.IEs.push_back(Dialogue(dialogueText, optionContainer, reaction));
+            newObject.interaction->IEs.push_back(Dialogue(dialogueText, optionContainer, reaction));
         }
     }
 
@@ -127,7 +136,6 @@ Area json::loadArea(std::string areaName, Vector2 pos)
         for (const auto &objectName : areaData["objects"])
         {
             newArea.objects.push_back(loadObject(objectName));
-
         }
     }
 
@@ -143,6 +151,13 @@ void unloadArea(Area area)
     for (size_t i = 0; i < active::area.objects.size(); i++)
     {
         UnloadTexture(active::area.objects[i].texture);
+        for (size_t j = 0; j < active::area.objects[i].interaction->IEs.size(); j++)
+        {
+            if (active::area.objects[i].interaction->IEs[j].reaction.has_value())
+            {
+                UnloadTexture(active::area.objects[i].interaction->IEs[j].reaction.value());
+            }
+        }
     }
 }
 
@@ -150,12 +165,13 @@ Player *active::player;
 Interaction *active::interaction;
 Area active::area;
 FocusableEntity *active::entity;
+Object *active::closestInteractible = nullptr;
 
 int active::gamePhase = 1;
 
 void active::changeEntity(FocusableEntity *newEntity)
 {
-    FocusableEntity* old_entity = active::entity;
+    FocusableEntity *old_entity = active::entity;
     active::entity = newEntity;
     active::entity->camera.target = old_entity->camera.target;
     active::entity->camera.zoom = old_entity->camera.zoom;
@@ -173,4 +189,82 @@ void active::changeArea(std::string areaName, Vector2 pos)
     active::player->alignCamera();
 
     active::area = json::loadArea(areaName, pos);
+}
+
+int indicatorFrameIncrementer = 0;
+int indicatorFrameCount = 0;
+int indicatorFrameTime = 5;
+
+void findClosestInteractible()
+{
+    float smallestDist = 10000000;
+    Object *closestPtr = nullptr;
+    for (auto &object : active::area.objects)
+    {
+        if (!object.interaction.has_value())
+        {
+            continue;
+        }
+        float distBetweenRects = sqrt(pow((active::player->x + active::player->width / 2) - (object.x + object.width / 2), 2) +
+                                      pow((active::player->y + active::player->height / 2) - (object.y + object.height / 2), 2));
+
+        if (distBetweenRects < 30)
+        {
+            if (distBetweenRects < smallestDist)
+            {
+                smallestDist = distBetweenRects;
+                closestPtr = &object;
+            }
+        }
+    }
+
+    active::closestInteractible = closestPtr;
+}
+
+void drawClosestInteractible()
+{
+    findClosestInteractible();
+
+    if (active::closestInteractible != nullptr)
+    {
+        ++indicatorFrameIncrementer;
+        if (indicatorFrameCount > 2)
+        {
+            indicatorFrameCount = indicatorFrameIncrementer / (indicatorFrameTime * 4);
+            if (indicatorFrameCount % 2)
+            {
+                indicatorFrameCount = 3;
+            }
+            else
+            {
+                indicatorFrameCount = 4;
+            }
+        }
+
+        else
+        {
+            indicatorFrameCount = indicatorFrameIncrementer / indicatorFrameTime;
+        }
+
+        DrawTextureRec(other::interactibleIndicator, (Rectangle){INDICATORWIDTH * indicatorFrameCount, 0, INDICATORWIDTH, INDICATORHEIGHT}, {active::closestInteractible->x, active::closestInteractible->y - INDICATORHEIGHT}, WHITE);
+    }
+    else
+    {
+        indicatorFrameIncrementer = 0;
+        indicatorFrameCount = 0;
+    }
+}
+
+void tryInteracting()
+{
+    if (IsKeyPressed(KEY_E))
+    {
+        if (active::closestInteractible != nullptr)
+        {
+
+            active::changeEntity(active::closestInteractible);
+            active::interaction = &active::closestInteractible->interaction.value();
+            isInteracting = true;
+        }
+    }
 }

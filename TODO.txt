@@ -2,8 +2,9 @@ UNEXPLAINED MYSTERIES:
     - What determines font size in relation to camera zoom
 
 TODO'S:
-    - add interacting with keyboard and mouse controls
+    - make more functions into struct methods
     - objects collision
+    - add interactible indicator animation to full dialogue menu when dialogue is initiated
     - auto nudge hvis man lige knap kan slide langs en væg
     - bedre renderingstruktur (simpel main.cpp fil)
     - bedre kodestruktur

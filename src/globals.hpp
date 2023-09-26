@@ -20,13 +20,10 @@ extern Camera2D fixedCamera;
 
 
 // Global textures
-namespace Xyno {
-    namespace reaction {
-        extern Texture2D happy;
-    }
-
-    void init();
+namespace other {
+    extern Texture2D interactibleIndicator;
 }
+
 
 void initGlobals();
 

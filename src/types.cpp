@@ -146,7 +146,7 @@ int OptionContainer::start()
     EndMode2D();
 
     return 0;
-} 
+}
 
 // Constructor with an optional OptionContainer
 Dialogue::Dialogue(std::string text)
@@ -219,16 +219,15 @@ int Interaction::iterate()
     return 1;
 }
 
-
-
 void Object::draw()
 {
     DrawTexture(texture, x, y, WHITE);
 }
 
-Exit::Exit(float x, float y, float w, float h, Vector2 toPos, std::string toAreaName) : Rectangle{x, y, w, h}, toPos(toPos), toAreaName(toAreaName) {};
+Exit::Exit(float x, float y, float w, float h, Vector2 toPos, std::string toAreaName) : Rectangle{x, y, w, h}, toPos(toPos), toAreaName(toAreaName){};
 
-void Exit::draw() {
+void Exit::draw()
+{
     DrawRectangle(x, y, width, height, PURPLE);
 }
 
@@ -243,7 +242,7 @@ Player::Player(std::string name) : name(name)
     height = idle.height;
 }
 
-bool Player::overlapsWithCollision(Area* activeArea)
+bool Player::overlapsWithCollision(Area *activeArea)
 {
     Rectangle collisionBox = Player::getCollisionBox();
 
@@ -264,15 +263,17 @@ bool Player::overlapsWithCollision(Area* activeArea)
         }
     }
     return false;
-
 }
 
-Exit* Player::overlapsWithExit(Area* activeArea) {
+Exit *Player::overlapsWithExit(Area *activeArea)
+{
     Rectangle collisionBox = Player::getCollisionBox();
 
-    for(auto& exit : activeArea->exits) {
+    for (auto &exit : activeArea->exits)
+    {
         Rectangle collisionRect = GetCollisionRec(collisionBox, exit);
-        if(collisionRect.width && collisionRect.height) {
+        if (collisionRect.width && collisionRect.height)
+        {
             return &exit;
         }
     }
@@ -303,34 +304,36 @@ void Player::draw()
     {
         if (v.x >= 0)
         {
-            DrawTextureRec(runRight, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
+            DrawTextureRec(runRight, (Rectangle){(float)(frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
         else
         {
-            DrawTextureRec(runLeft, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
+            DrawTextureRec(runLeft, (Rectangle){(float)(frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
     }
     else
     {
         if (v.y >= 0)
         {
-            DrawTextureRec(runDown, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
+            DrawTextureRec(runDown, (Rectangle){(float)(frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
         else
         {
-            DrawTextureRec(runUp, (Rectangle){(float) (frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
+            DrawTextureRec(runUp, (Rectangle){(float)(frameWidth * frameCount), 48, 48, 48}, {x, y}, WHITE);
         }
     }
 
-    frameCount = (frameIncrementer / frameTime) % 8;
+    frameCount = (frameIncrementer / FRAMETIME) % 8;
 }
+
+
 
 Rectangle Player::getCollisionBox()
 {
     return (Rectangle){x + 16, y + 32, 16, 16};
 }
 
-void Player::updateMovement(Area* activeArea)
+void Player::updateMovement(Area *activeArea)
 {
     checkIfPlayerCanMove();
     if (playerCanMove)

@@ -72,7 +72,7 @@ int main(void)
         {
             active::changeEntity(active::player);
         }
-        if (IsKeyPressed(KEY_E))
+        if (IsKeyPressed(KEY_T))
         {
             testButton.outputText();
         }
@@ -80,12 +80,7 @@ int main(void)
         {
             active::entity->startShake();
         }
-        if (IsKeyPressed(KEY_T))
-        {
-            active::changeEntity(&active::area.objects[0]);
-            active::interaction = &active::area.objects[0].interaction;
-            isInteracting = true;
-        }
+        
         if (IsKeyPressed(KEY_Y))
         {
             active::changeArea("city", (Vector2){50, 50});
@@ -110,6 +105,9 @@ int main(void)
             SetWindowSize(windowWidth, windowHeight);
         }
 
+        tryInteracting();
+
+
         // Update movement of active player
         active::player->updateMovement(&active::area);
 
@@ -120,7 +118,9 @@ int main(void)
         if(overlappingExit != nullptr) {
             active::changeArea(overlappingExit->toAreaName, overlappingExit->toPos);
         }
-        
+
+
+
         // Rendering
         BeginDrawing();
         
@@ -131,6 +131,7 @@ int main(void)
         Rectangle rect = active::player->getCollisionBox();
         DrawRectangle(rect.x, rect.y, rect.width, rect.height, GREEN);
         active::player->draw();
+        drawClosestInteractible();
         EndMode2D();
 
         

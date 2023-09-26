@@ -1,0 +1,19 @@
+{
+    "default": {
+        "xywh": [100, 100, 16, 16],
+        "dialogue": [
+            {
+                "text": "Hello. I would like to talk to your manager. Is he available?",
+                "options": [["alright"], ["no bueno", 10000]]
+            },
+            {
+                "text": "Alright where is he?",
+                "reaction": "dealer/happy"
+            },
+            {
+                "text": "Test",
+                "options": [["hello"], ["let's go back!", -2]]
+            }
+        ]
+    }
+}

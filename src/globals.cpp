@@ -13,16 +13,14 @@ Camera2D fixedCamera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, SCALEFACTOR};
 
 
 
-Texture2D Xyno::reaction::happy;
 
-void Xyno::init()
-{
-    Xyno::reaction::happy = LoadTexture("resources/reactions/dealer/happy.png");
-}
+Texture2D other::interactibleIndicator;
+
 
 void initGlobals()
 {
-    Xyno::init();
+    other::interactibleIndicator = LoadTexture("resources/other/interactible-indicator-animation.png");
+
 }
 
 bool settingsActive = false;

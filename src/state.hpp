@@ -21,6 +21,7 @@ namespace active
     extern Interaction *interaction;
     extern Area area;
     extern FocusableEntity *entity;
+    extern Object* closestInteractible;
     extern int gamePhase;
 
     void changeEntity(FocusableEntity *newEntity);
@@ -29,3 +30,15 @@ namespace active
 }
 
 void unloadArea(Area area);
+
+extern int indicatorFrameIncrementer;
+extern int indicatorFrameCount;
+extern int indicatorFrameTime;
+static const int INDICATORWIDTH = 16;
+static const int INDICATORHEIGHT = 16;
+
+void findClosestInteractible();
+
+void drawClosestInteractible();
+
+void tryInteracting();
