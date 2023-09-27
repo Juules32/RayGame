@@ -1,6 +1,15 @@
 {
+    "width": 16,
+    "height": 16,
+    "collisionBox": {
+        "x": 2,
+        "y": 2,
+        "width": 12,
+        "height": 12
+    },
     "default": {
-        "xywh": [100, 100, 16, 16],
+        "x": 100,
+        "y": 100,
         "dialogue": [
             {
                 "text": "Hello. I would like to talk to your manager. Is he available?",

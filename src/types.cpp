@@ -221,6 +221,8 @@ int Interaction::iterate()
 
 void Object::draw()
 {
+            DrawRectangle(x, y, width, height, (Color){0,0,255,100});
+        DrawRectangle(collisionBox.x, collisionBox.y, collisionBox.width, collisionBox.height, (Color){0,255,0,100});
     DrawTexture(texture, x, y, WHITE);
 }
 
@@ -246,6 +248,7 @@ bool Player::overlapsWithCollision(Area *activeArea)
 {
     Rectangle collisionBox = Player::getCollisionBox();
 
+    // Area borders
     if (collisionBox.x <= 0 || collisionBox.y <= 0 ||
         collisionBox.x + collisionBox.width > activeArea->background.width ||
         collisionBox.y + collisionBox.height > activeArea->background.height)
@@ -253,6 +256,7 @@ bool Player::overlapsWithCollision(Area *activeArea)
         return true;
     }
 
+    // Collision image color array
     for (int yVal = collisionBox.y; yVal < collisionBox.y + collisionBox.height; yVal++)
     {
         for (int xVal = collisionBox.x; xVal < collisionBox.x + collisionBox.width; xVal++)
@@ -262,6 +266,17 @@ bool Player::overlapsWithCollision(Area *activeArea)
                 return true;
         }
     }
+
+    // Area objects
+    for (auto &object : activeArea->objects)
+    {
+            Rectangle overlappingRect = GetCollisionRec(collisionBox, object.collisionBox);
+
+            if(overlappingRect.width || overlappingRect.height) {
+                return true;
+            }
+    }
+
     return false;
 }
 
@@ -325,8 +340,6 @@ void Player::draw()
 
     frameCount = (frameIncrementer / FRAMETIME) % 8;
 }
-
-
 
 Rectangle Player::getCollisionBox()
 {

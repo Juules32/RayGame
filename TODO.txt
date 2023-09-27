@@ -2,8 +2,8 @@ UNEXPLAINED MYSTERIES:
     - What determines font size in relation to camera zoom
 
 TODO'S:
+    - draw order
     - make more functions into struct methods
-    - objects collision
     - add interactible indicator animation to full dialogue menu when dialogue is initiated
     - auto nudge hvis man lige knap kan slide langs en væg
     - bedre renderingstruktur (simpel main.cpp fil)
@@ -17,4 +17,4 @@ FUTURE TODO's:
     - lav dialogue text gruppering og scrolling og fast forwarding med controls
     - fireflies at night effect
     - animated dialogue reaction
-    - add player shadow
+    - add player shadowe

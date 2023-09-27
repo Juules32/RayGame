@@ -35,18 +35,31 @@ Object json::loadObject(std::string objectName)
 
     newObject.texture = LoadTexture(("resources/objects/" + objectName + "/" + objectName + ".png").c_str());
 
-    newObject.x = objectData["default"]["xywh"][0];
-    newObject.y = objectData["default"]["xywh"][1];
-    if (objectData["default"]["xywh"].size() > 2)
+    newObject.width = (objectData.contains("width")) ? (float)objectData["width"] : newObject.texture.width;
+    newObject.height = (objectData.contains("height")) ? (float)objectData["height"] : newObject.texture.height;
+
+    newObject.x = objectData["default"]["x"];
+    newObject.y = objectData["default"]["y"];
+
+    if (objectData.contains("collisionBox"))
     {
-        newObject.width = objectData["default"]["xywh"][2];
-        newObject.height = objectData["default"]["xywh"][3];
+        newObject.collisionBox.x = (float) (objectData["collisionBox"]["x"]) + newObject.x;
+        newObject.collisionBox.y = (float) (objectData["collisionBox"]["y"]) + newObject.y;
+        newObject.collisionBox.width = objectData["collisionBox"]["width"];
+        newObject.collisionBox.height = objectData["collisionBox"]["height"];
     }
     else
     {
-        newObject.width = newObject.texture.width;
-        newObject.height = newObject.texture.height;
+
+        newObject.collisionBox.x = newObject.x;
+        newObject.collisionBox.y = newObject.y;
+        newObject.collisionBox.width = newObject.width;
+        newObject.collisionBox.height = newObject.height;
     }
+    cout << newObject.collisionBox.x << endl;
+    cout << newObject.collisionBox.y << endl;
+    cout << newObject.collisionBox.width << endl;
+    cout << newObject.collisionBox.height << endl;
 
     if (objectData["default"].contains("dialogue") && objectData["default"]["dialogue"].is_array())
     {
@@ -194,10 +207,11 @@ void active::changeArea(std::string areaName, Vector2 pos)
 int indicatorFrameIncrementer = 0;
 int indicatorFrameCount = 0;
 int indicatorFrameTime = 5;
+bool indicatorFirstPartDone = false;
 
 void findClosestInteractible()
 {
-    float smallestDist = 10000000;
+    float smallestDist = 30; // Acts as minimum distance
     Object *closestPtr = nullptr;
     for (auto &object : active::area.objects)
     {
@@ -205,16 +219,13 @@ void findClosestInteractible()
         {
             continue;
         }
-        float distBetweenRects = sqrt(pow((active::player->x + active::player->width / 2) - (object.x + object.width / 2), 2) +
-                                      pow((active::player->y + active::player->height / 2) - (object.y + object.height / 2), 2));
+        float distBetweenRects = sqrt(pow((active::player->getCollisionBox().x + active::player->getCollisionBox().width / 2) - (object.collisionBox.x + object.collisionBox.width / 2), 2) +
+                                      pow((active::player->getCollisionBox().y + active::player->getCollisionBox().height / 2) - (object.collisionBox.y + object.collisionBox.height / 2), 2));
 
-        if (distBetweenRects < 30)
+        if (distBetweenRects < smallestDist)
         {
-            if (distBetweenRects < smallestDist)
-            {
-                smallestDist = distBetweenRects;
-                closestPtr = &object;
-            }
+            smallestDist = distBetweenRects;
+            closestPtr = &object;
         }
     }
 
@@ -230,6 +241,10 @@ void drawClosestInteractible()
         ++indicatorFrameIncrementer;
         if (indicatorFrameCount > 2)
         {
+            if(indicatorFirstPartDone == false) {
+                indicatorFirstPartDone = true;
+                indicatorFrameIncrementer = 20;
+            }
             indicatorFrameCount = indicatorFrameIncrementer / (indicatorFrameTime * 4);
             if (indicatorFrameCount % 2)
             {
@@ -246,12 +261,13 @@ void drawClosestInteractible()
             indicatorFrameCount = indicatorFrameIncrementer / indicatorFrameTime;
         }
 
-        DrawTextureRec(other::interactibleIndicator, (Rectangle){INDICATORWIDTH * indicatorFrameCount, 0, INDICATORWIDTH, INDICATORHEIGHT}, {active::closestInteractible->x, active::closestInteractible->y - INDICATORHEIGHT}, WHITE);
+        DrawTextureRec(other::interactibleIndicator, (Rectangle){(float)(INDICATORWIDTH * indicatorFrameCount), 0, INDICATORWIDTH, INDICATORHEIGHT}, {active::closestInteractible->x, active::closestInteractible->y - INDICATORHEIGHT}, WHITE);
     }
     else
     {
         indicatorFrameIncrementer = 0;
         indicatorFrameCount = 0;
+        indicatorFirstPartDone = false;
     }
 }
 

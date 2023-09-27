@@ -112,6 +112,7 @@ struct Object : FocusableEntity
 {
     Texture2D texture;
     std::optional<Interaction> interaction = std::nullopt;
+    Rectangle collisionBox;
     Camera2D camera = {(Vector2){0, 0}, (Vector2){0, 0}, 0, (float) SCALEFACTOR};
 
     void draw();

@@ -1,0 +1,28 @@
+{
+    "width": 100, //Optional
+    "height": 100, //Optional
+    "collisionBox": { //Optional, but if present, needs all four params
+        "offsetX": 2,
+        "offsetY": 2,
+        "width": 12,
+        "height": 12
+    },
+    "default": { //Required
+        "x": 100, //Required
+        "y": 100, //Required
+        "dialogue": [ //Optional, if absent: non-interactible
+            {
+                "text": "Hello. I would like to talk to your manager. Is he available?",
+                "options": [["alright"], ["no bueno", 10000]] //Optional
+            },
+            {
+                "text": "Alright where is he?",
+                "reaction": "dealer/happy" //Optional
+            },
+            {
+                "text": "Test",
+                "options": [["hello"], ["let's go back!", -2]]
+            }
+        ]
+    }
+}

@@ -1,6 +1,13 @@
 {
+    "collisionBox": {
+        "x": 2,
+        "y": 15,
+        "width": 12,
+        "height": 8
+    },
     "default": {
-        "xywh": [120, 100],
+        "x": 100,
+        "y": 50,
         "dialogue": [
             {
                 "text": "Hello, I'm goku from Fortnite!"

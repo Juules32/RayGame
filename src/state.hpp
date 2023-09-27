@@ -37,6 +37,8 @@ extern int indicatorFrameTime;
 static const int INDICATORWIDTH = 16;
 static const int INDICATORHEIGHT = 16;
 
+float distanceBetweenRectangles(const Rectangle& rect1, const Rectangle& rect2);
+
 void findClosestInteractible();
 
 void drawClosestInteractible();
